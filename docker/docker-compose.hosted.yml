@@ -5,13 +5,13 @@ services:
   setprotocol-subgraph:
     image: ${SET_IMAGE_NAME}:node-${NODE_VER}
     environment:
-      DEPLOYMENT: ${DEPLOYMENT:-"hosted"}
+      DEPLOYMENT: ${DEPLOYMENT:-hosted}
       IPFS_IP: ${IPFS_HOSTED:-""}
       GRAPH_NODE_IP: ${GRAPH_NODE_HOSTED:-""}
       ACCESS_TOKEN: ${ACCESS_TOKEN}
       SUBGRAPH_VERSION: ${SUBGRAPH_VERSION:-""}
-      NETWORK_NAME: ${NETWORK_NAME:-""}
-      GITHUB_REPO: ${GITHUB_REPO:-"justinkchen"}
+      NETWORK_NAME: ${NETWORK_NAME}
+      GITHUB_REPO: ${GITHUB_REPO:-justinkchen}
       SUBGRAPH_NAME: ${SUBGRAPH_NAME}
     volumes:
       - ../:/subgraph

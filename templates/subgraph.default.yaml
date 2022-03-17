@@ -28,15 +28,6 @@ dataSources:
         - event: SetTokenCreated(indexed address,address,string,string)
           handler: handleSetTokenCreated
 
-  # [NOTE] The following set of dataSources reference deprecated SetTokenCreator
-  # contracts on Ethereum mainnet tied to deployed SetTokens. When deploying
-  # to Ethereum mainnet (and staging), the following smart contracts must be
-  # uncommented and executed as appropriate.
-
-  # [TO-DO]
-  #   - can single contract definition support multiple source addresses?
-  #   - otherwise, separate this logic to auto-deploy as required
-
 templates:
   - name: SetToken
     kind: ethereum/contract

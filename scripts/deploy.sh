@@ -8,10 +8,16 @@ if [ "${DEPLOYMENT}" = "hosted" ] && [ ! -n "${ACCESS_TOKEN}" ]; then
   exit 1
 fi
 
+# Make sure network name is set for external deployments
+if [ "${DEPLOYMENT}" = "hosted" ] && [ ! -n "${NETWORK_NAME}" ]; then
+    echo "ERROR: No target network specified for hosted deployment."
+    exit 1
+fi
+
 # Get subgraph name from deployments.json if not user-provided
 if [ -z "${SUBGRAPH_NAME}" ]; then
   echo "No SUBGRAPH_NAME specified, getting subgraph name from target graph network in deployments.json"
-  export SUBGRAPH_NAME=$(jq --arg network "${NETWORK_NAME}" '.[$network].subgraphName' deployments.json)
+  export SUBGRAPH_NAME=$(jq -r --arg network "${NETWORK_NAME}" '.[$network].subgraphName' deployments.json)
   if [ -z "${SUBGRAPH_NAME}" ]; then
     echo "ERROR: No valid subgraph name found"
     exit 1

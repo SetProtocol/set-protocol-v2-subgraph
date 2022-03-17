@@ -61,9 +61,11 @@ Indexer of Set Protocol v2 events. Built on [The Graph](https://thegraph.com/).
 
     `task docker-build`
 
-1. Deploy hosted subgraph to network specified by the `NETWORK_HOSTED` environment variable in dotenv
+1. Deploy hosted subgraph to network specified by the `NETWORK_HOSTED` argument
 
-    `task deploy-hosted [-- SUBGRAPH_ACCESS_TOKEN]`
+    `task deploy-hosted [-- NETWORK_HOSTED [SUBGRAPH_ACCESS_TOKEN]]`
+
+    Note: `NETWORK_HOSTED` and `SUBGRAPH_ACCESS_TOKEN` must be provided as input arguments or defined in the dotenv configuration. Input arguments take precendence over dotenv configurations. For input arguments, you can specify just the network, or both the network and the access token, but you cannot provide the access token alone.
 
 ### [TO-DO] External Deployment to Subgraph Studio
 
@@ -73,15 +75,15 @@ TBD
 
 Available tasks for this project:
 
-| COMMAND [OPTS]                             | DESCRIPTION |
-|--------------------------------------------|---------------------------------------------------------------------------------|
-| `clean [-- all\|subgraph\|hardhat]`        | Clean up local subgraph deployment; `all` arg additionally removes all volumes and the Hardhat node. |
-| `deploy-hardhat -- /path/to/file.ts`       | Deploy a local Hardhat node and run a test script. Must specify full path to file as task input argument. |
-| `deploy-hosted [-- SUBGRAPH_ACCESS_TOKEN]` | Build and deploy subgraph on Hosted Service. `SUBGRAPH_ACCESS_TOKEN` must be provided or defined in a private dotenv. |
-| `deploy-local [-- detach]`                 | Build and deploy subgraph on local network; `detach` runs container detached. |
-| `docker-build`                             | Build subgraph Docker image on defined node version base (default: 16-slim). |
-| `gen-abi`                                  | Pull latest Set Protocol ABIs into the build environment. |
-| `gen-schema [-- hosted]`                   | Compile the subgraph schema but do not deploy the subgraph; default target subgraph network is hardhat. |
+| COMMAND [OPTS]                        | DESCRIPTION |
+|---------------------------------------|---------------------------------------------------------------------------------|
+| `clean [-- all\|subgraph\|hardhat]`   | Clean up local subgraph deployment; `all` arg additionally removes all volumes and the Hardhat node. |
+| `deploy-hardhat -- /path/to/file.ts`  | Deploy a local Hardhat node and run a test script. Must specify full path to file as task input argument. |
+| `deploy-hosted [-- NETWORK_HOSTED [SUBGRAPH_ACCESS_TOKEN]]` | Build and deploy subgraph to `NETWORK_HOSTED` on Hosted Service. `SUBGRAPH_ACCESS_TOKEN` must be provided or defined in a private dotenv. |
+| `deploy-local [-- detach]`            | Build and deploy subgraph on local network; `detach` runs container detached. |
+| `docker-build`                        | Build subgraph Docker image on defined node version base (default: 16-slim). |
+| `gen-abi`                             | Pull latest Set Protocol ABIs into the build environment. |
+| `gen-schema [-- hosted]`              | Compile the subgraph schema but do not deploy the subgraph; default target subgraph network is hardhat. |
 
 ## [TO-DO] ADVANCED DEPLOYMENT GUIDES
 

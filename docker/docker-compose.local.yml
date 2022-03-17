@@ -31,20 +31,20 @@ services:
       POSTGRES_PASSWORD: let-me-in
       POSTGRES_DB: graph-node
     volumes:
-      - graph-node-postgres:/var/lib/postgresql/data  
+      - graph-node-postgres:/var/lib/postgresql/data
 
   setprotocol-subgraph:
     image: ${SET_IMAGE_NAME}:node-${NODE_VER}
     depends_on:
       - graph-node
     environment:
-      DEPLOYMENT: ${DEPLOYMENT:-"local"}
+      DEPLOYMENT: ${DEPLOYMENT:-local}
       IPFS_IP: ${IPFS_IP:-""}
       GRAPH_NODE_IP: ${GRAPH_NODE_IP:-""}
-      ACCESS_TOKEN: ${ACCESS_TOKEN:-"test"}
+      ACCESS_TOKEN: ${ACCESS_TOKEN:-test}
       SUBGRAPH_VERSION: ${SUBGRAPH_VERSION:-""}
-      NETWORK_NAME: ${NETWORK_NAME:-""}
-      GITHUB_REPO: ${GITHUB_REPO:-"SetProtocol"}
+      NETWORK_NAME: ${NETWORK_NAME:-hardhat}
+      GITHUB_REPO: ${GITHUB_REPO:-SetProtocol}
       SUBGRAPH_NAME: ${SUBGRAPH_NAME}
     volumes:
       - ../:/subgraph

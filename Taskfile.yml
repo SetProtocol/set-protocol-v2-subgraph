@@ -45,12 +45,14 @@ tasks:
     cmds:
       - docker-compose -f docker-compose.hosted.yml up
     vars:
+      NETWORK_NAME:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -f1) ]; then echo "{{.CLI_ARGS}}" | cut -d" " -f1; else echo "{{.NETWORK_HOSTED}}"; fi
       SUBGRAPH_ACCESS_TOKEN:
-        sh: if [ "{{.CLI_ARGS}}" ]; then echo "{{.CLI_ARGS}}"; else echo "{{.SUBGRAPH_ACCESS_TOKEN}}"; fi
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then echo "{{.CLI_ARGS}}" | cut -d" " -s -f2; else echo "{{.SUBGRAPH_ACCESS_TOKEN}}"; fi
     env:
       ACCESS_TOKEN: "{{.SUBGRAPH_ACCESS_TOKEN}}"
       DEPLOYMENT: "hosted"
-      NETWORK_NAME: "{{.NETWORK_HOSTED}}"
+      NETWORK_NAME: "{{.NETWORK_NAME}}"
     preconditions:
       - sh: if [ -z "$(ls -A ../abis)" ]; then exit -1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
