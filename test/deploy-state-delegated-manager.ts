@@ -4,8 +4,8 @@
 // - Deploy system
 
 import "module-alias/register";
-import { getAccounts, getSystemFixture } from "@utils/test/index";
-import { DeployHelper } from "@setprotocol/set-v2-strategies/utils/deploys";
+import { getAccounts, getSystemFixture } from "@setprotocol/set-protocol-v2/utils/test/index";
+import { DeployHelper } from "@utils/deploys";
 
 
 async function main() {

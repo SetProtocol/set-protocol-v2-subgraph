@@ -2,7 +2,8 @@
 
 set -e
 
-cd set-protocol-v2
+# cd set-protocol-v2
+cd set-v2-strategies
 
 if [ ! -f "/tmp/${DEPLOY_SCRIPT}" ]; then
   echo "ERROR: Invalid test script."
