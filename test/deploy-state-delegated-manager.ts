@@ -6,7 +6,7 @@
 //   - Deploy SetToken
 //   - Deploy ManagerCore and mock Extension
 //   - Deploy DelegatedManager
-//   - Deploy DelegatedManager
+//   - Transfer ownership to DelegatedManager
 //   - Add DelegatedManager to ManagerCore through factory
 // - Trigger events for testing
 //   - Update owner
