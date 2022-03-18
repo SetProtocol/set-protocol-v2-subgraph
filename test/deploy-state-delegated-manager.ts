@@ -1,21 +1,34 @@
-// Deploy Hardhat Network State for Subgraph Tests
-// -----------------------------------------------
-// Deploy a test environment to hardhat for subgraph development
-// - Setup
-//   - Deploy system
-//   - Deploy SetToken
-//   - Deploy ManagerCore and mock Extension
-//   - Deploy DelegatedManager
-//   - Transfer ownership to DelegatedManager
-//   - Add DelegatedManager to ManagerCore through factory
-// - Trigger events for testing
-//   - Update owner
-//   - Update methodologist
-//   - Add operatorTwo
-//   - Remove operatorOne
+/*
+ * Deploy Hardhat Network State for Subgraph Tests
+ * -----------------------------------------------
+ * Deploy a test environment to hardhat for subgraph development
+ *
+ * Setup
+ * - Deploy system
+ * - Deploy ManagerCore and mock Extension
+ *
+ * Case 1: DelegatedManager managed SetToken
+ * - Deploy SetToken
+ * - Deploy DelegatedManager
+ * - Add DelegatedManager to ManagerCore through factory
+ * - Transfer ownership to DelegatedManager
+ * - Update owner
+ * - Update methodologist
+ * - Add operatorTwo
+ * - Remove operatorOne
+ *
+ * Case 2: EOA managed SetToken
+ * - Deploy SetToken
+ *
+ * Case 3: DelegatedManager managed SetToken migrates to EOA manager
+ * - Deploy SetToken
+ * - Deploy DelegatedManager
+ * - Add DelegatedManager to ManagerCore through factory
+ * - Transfer ownership to DelegatedManager
+ * - Set manager to EOA
+ */
 
 import "module-alias/register";
-import { ADDRESS_ZERO } from "@utils/constants";
 import { getSystemFixture } from "@setprotocol/set-protocol-v2/utils/test/index";
 import DeployHelper from "@utils/deploys";
 import {
@@ -35,7 +48,8 @@ async function main() {
     methodologistTwo,
     operatorOne,
     operatorTwo,
-    factory
+    factory,
+    otherManager,
   ] = await getAccounts();
 
   // Setup
@@ -46,21 +60,24 @@ async function main() {
   const setV2Setup = getSystemFixture(ownerOne.address);
   await setV2Setup.initialize();
 
+  // Deploy ManagerCore and mock Extension
+  const managerCore = await deployer.managerCore.deployManagerCore();
+  await managerCore.initialize([factory.address]);
+  const baseExtension = await deployer.mocks.deployBaseGlobalExtensionMock(managerCore.address);
+
+  // Case 1: DelegatedManager managed SetToken
+  // -----------------------------------------------
+
   // Deploy SetToken
-  const setToken = await setV2Setup.createSetToken(
+  const setTokenOne = await setV2Setup.createSetToken(
     [setV2Setup.dai.address],
     [ether(1)],
     [setV2Setup.issuanceModule.address]
   );
-  await setV2Setup.issuanceModule.initialize(setToken.address, ADDRESS_ZERO);
-
-  // Deploy ManagerCore and mock Extension
-  const managerCore = await deployer.managerCore.deployManagerCore();
-  const baseExtension = await deployer.mocks.deployBaseGlobalExtensionMock(managerCore.address);
 
   // Deploy DelegatedManager
-  const delegatedManager = await deployer.manager.deployDelegatedManager(
-    setToken.address,
+  const delegatedManagerOne = await deployer.manager.deployDelegatedManager(
+    setTokenOne.address,
     ownerOne.address,
     methodologistOne.address,
     [baseExtension.address],
@@ -69,28 +86,63 @@ async function main() {
     true
   );
 
-  // Transfer ownership to DelegatedManager
-  await setToken.setManager(delegatedManager.address);
-
   // Add DelegatedManager to ManagerCore through factory
-  await managerCore.initialize([factory.address]);
-  await managerCore.connect(factory.wallet).addManager(delegatedManager.address);
+  await managerCore.connect(factory.wallet).addManager(delegatedManagerOne.address);
 
-  // Trigger events for testing
-  // -----------------------------------------------
+  // Transfer ownership to DelegatedManager
+  await setTokenOne.setManager(delegatedManagerOne.address);
 
   // Update owner
-  await delegatedManager.connect(ownerOne.wallet).transferOwnership(ownerTwo.address);
+  await delegatedManagerOne.connect(ownerOne.wallet).transferOwnership(ownerTwo.address);
 
   // Update methodologist
-  await delegatedManager.connect(methodologistOne.wallet).setMethodologist(methodologistTwo.address);
+  await delegatedManagerOne.connect(methodologistOne.wallet).setMethodologist(methodologistTwo.address);
 
   // Add operatorTwo
-  await delegatedManager.connect(ownerTwo.wallet).addOperators([operatorTwo.address]);
+  await delegatedManagerOne.connect(ownerTwo.wallet).addOperators([operatorTwo.address]);
 
   // Remove operatorOne
-  await delegatedManager.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
+  await delegatedManagerOne.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
 
+  // Case 2: EOA managed SetToken
+  // -----------------------------------------------
+
+  // Deploy SetToken
+  await setV2Setup.createSetToken(
+    [setV2Setup.dai.address],
+    [ether(1)],
+    [setV2Setup.issuanceModule.address]
+  );
+
+  // Case 3: DelegatedManager managed SetToken migrates to EOA manager
+  // -----------------------------------------------
+
+  // Deploy SetToken
+  const setTokenTwo = await setV2Setup.createSetToken(
+    [setV2Setup.dai.address],
+    [ether(1)],
+    [setV2Setup.issuanceModule.address]
+  );
+
+  // Deploy DelegatedManager
+  const delegatedManagerTwo = await deployer.manager.deployDelegatedManager(
+    setTokenTwo.address,
+    ownerOne.address,
+    methodologistOne.address,
+    [baseExtension.address],
+    [operatorOne.address],
+    [setV2Setup.usdc.address, setV2Setup.weth.address],
+    true
+  );
+
+  // Add DelegatedManager to ManagerCore through factory
+  await managerCore.connect(factory.wallet).addManager(delegatedManagerTwo.address);
+
+  // Transfer ownership to DelegatedManager
+  await setTokenTwo.setManager(delegatedManagerTwo.address);
+
+  // Transfer ownership to EOA
+  await delegatedManagerTwo.setManager(otherManager.address);
 }
 
 main().catch(e => {
