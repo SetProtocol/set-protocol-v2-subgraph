@@ -5,7 +5,7 @@
 
 import "module-alias/register";
 import { getAccounts, getSystemFixture } from "@setprotocol/set-protocol-v2/utils/test/index";
-import { DeployHelper } from "@utils/deploys";
+import DeployHelper from "@utils/deploys";
 
 
 async function main() {
@@ -19,7 +19,7 @@ async function main() {
   const setup = getSystemFixture(owner.address);
   await setup.initialize();
 
-  managerCore = await deployer.managerCore.deployManagerCore();
+  const managerCore = await deployer.managerCore.deployManagerCore();
 
 }
 
