@@ -67,6 +67,12 @@ Indexer of Set Protocol v2 events. Built on [The Graph](https://thegraph.com/).
 
     Note: `NETWORK_HOSTED` and `SUBGRAPH_ACCESS_TOKEN` must be provided as input arguments or defined in the dotenv configuration. Input arguments take precendence over dotenv configurations. For input arguments, you can specify just the network, or both the network and the access token, but you cannot provide the access token alone.
 
+**NOTE**
+
+Per the [documentation](https://thegraph.com/docs/en/hosted-service/deploy-subgraph-hosted/#subgraph-archive-policy) on the Hosted Service:
+
+> A subgraph is defined as "inactive" if it was deployed to the Hosted Service more than 45 days ago, and if it has received 0 queries in the last 30 days.
+
 ### [TO-DO] External Deployment to Subgraph Studio
 
 TBD

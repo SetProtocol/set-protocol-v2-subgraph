@@ -41,6 +41,8 @@ if (deploymentName == "mainnet") {
   input = path.join(templatesDir, "subgraph.mainnet.yaml");
 } else if (deploymentName == "staging-mainnet") {
   input = path.join(templatesDir, "subgraph.staging-mainnet.yaml");
+} else if (deploymentName == "matic-staging-mainnet") {
+  input = path.join(templatesDir, "subgraph.matic-staging-mainnet.yaml");
 } else {
   input = path.join(templatesDir, "subgraph.default.yaml");
 }
