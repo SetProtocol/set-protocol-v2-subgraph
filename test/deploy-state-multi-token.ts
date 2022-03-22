@@ -14,11 +14,11 @@
 import "module-alias/register";
 import { BigNumber } from "@ethersproject/bignumber";
 import { ethers } from "hardhat";
-import { EMPTY_BYTES, ONE_YEAR_IN_SECONDS, ZERO } from "@utils/constants";
-import DeployHelper from "@utils/deploys";
-import { ether } from "@utils/index";
-import { getAccounts, getSystemFixture, increaseTimeAsync } from "@utils/test/index";
-import { StreamingFeeState } from "@utils/types";
+import { EMPTY_BYTES, ONE_YEAR_IN_SECONDS, ZERO } from "@setprotocol/set-protocol-v2/utils/constants";
+import DeployHelper from "@setprotocol/set-protocol-v2/utils/deploys";
+import { ether } from "@setprotocol/set-protocol-v2/utils/index";
+import { getAccounts, getSystemFixture, increaseTimeAsync } from "@setprotocol/set-protocol-v2/utils/test/index";
+import { StreamingFeeState } from "@setprotocol/set-protocol-v2/utils/types";
 
 async function main() {
 
@@ -192,7 +192,7 @@ async function main() {
   setup.issuanceModule = setup.issuanceModule.connect(manager1.wallet);
   // mockPreIssuanceHook = await deployer.mocks.deployManagerIssuanceHookMock();
   await setup.issuanceModule.initialize(setToken2.address, mockPreIssuanceHook.address);
-  
+
   // Transfer WBTC from owner to manager for issuance
   setup.wbtc = setup.wbtc.connect(owner.wallet);
   await setup.wbtc.transfer(manager1.address, wbtcUnits.mul(100));
