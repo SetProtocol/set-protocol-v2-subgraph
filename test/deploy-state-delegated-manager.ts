@@ -26,6 +26,12 @@
  * - Add DelegatedManager to ManagerCore through factory
  * - Transfer ownership to DelegatedManager
  * - Set manager to EOA
+ *
+ * Case 4: Trivial DelegatedManager (owner/methodologist/operator all the same)
+ * - Deploy SetToken
+ * - Deploy DelegatedManager
+ * - Add DelegatedManager to ManagerCore through factory
+ * - Transfer ownership to DelegatedManager
  */
 
 import "module-alias/register";
@@ -143,6 +149,33 @@ async function main() {
 
   // Transfer ownership to EOA
   await delegatedManagerTwo.setManager(otherManager.address);
+
+  // Case 4: Trivial DelegatedManager (owner/methodologist/operator all the same)
+  // -----------------------------------------------
+
+  // Deploy SetToken
+  const setTokenThree = await setV2Setup.createSetToken(
+    [setV2Setup.dai.address],
+    [ether(1)],
+    [setV2Setup.issuanceModule.address]
+  );
+
+  // Deploy DelegatedManager
+  const delegatedManagerThree = await deployer.manager.deployDelegatedManager(
+    setTokenThree.address,
+    operatorOne.address,
+    operatorOne.address,
+    [baseExtension.address],
+    [operatorOne.address],
+    [setV2Setup.usdc.address, setV2Setup.weth.address],
+    true
+  );
+
+  // Add DelegatedManager to ManagerCore through factory
+  await managerCore.connect(factory.wallet).addManager(delegatedManagerThree.address);
+
+  // Transfer ownership to DelegatedManager
+  await setTokenThree.setManager(delegatedManagerThree.address);
 }
 
 main().catch(e => {
