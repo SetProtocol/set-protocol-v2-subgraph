@@ -37,7 +37,7 @@ dataSources:
     source:
       abi: SetTokenCreator
       address: '0xCF786472d37f557A80fE6daFF6f2672bfDa728a3'
-      startBlock: {{startBlock}}
+      startBlock: 15214871
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
