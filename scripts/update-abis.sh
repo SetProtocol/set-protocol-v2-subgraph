@@ -47,12 +47,20 @@ cp .env.default .env
 yarn && yarn compile
 cd artifacts
 
+# Define the Set manager factory contracts of interest for the subgraph development
+MANAGER_FACTORY_CONTRACTS=(
+  DelegatedManagerFactory
+)
+
 # Define the Set manager contracts of interest for the subgraph development
 MANAGER_CONTRACTS=(
   DelegatedManager
 )
 
 # Copy the contract ABI code into the bind mounted working directory
+for c in "${MANAGER_FACTORY_CONTRACTS[@]}"; do
+  cp "contracts/factories/$c.sol/$c.json" "/subgraph/abis"
+done
 for c in "${MANAGER_CONTRACTS[@]}"; do
   cp "contracts/manager/$c.sol/$c.json" "/subgraph/abis"
 done
