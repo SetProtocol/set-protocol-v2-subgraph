@@ -3,7 +3,7 @@
 Indexer of Set Protocol v2 events. Built on [The Graph](https://thegraph.com/).
 
 <!--
-TO-DO:
+[TO-DO] CONTENTS (herein or external):
 - Tutorials
     - Deploy a local subgraph
     - Deploy a subgraph to Hosted Service
@@ -55,7 +55,25 @@ TO-DO:
 
     Example query to run can be found in `test/sample-query.txt`
 
-### [TO-DO] External Deployment (Graph Hosted Service / Subgraph Studio)
+### External Deployment to Hosted Service
+
+1. Build the Set Protocol Docker base and hardhat images
+
+    `task docker-build`
+
+1. Deploy hosted subgraph to network specified by the `NETWORK_HOSTED` argument
+
+    `task deploy-hosted [-- NETWORK_HOSTED [SUBGRAPH_ACCESS_TOKEN]]`
+
+    Note: `NETWORK_HOSTED` and `SUBGRAPH_ACCESS_TOKEN` must be provided as input arguments or defined in the dotenv configuration. Input arguments take precendence over dotenv configurations. For input arguments, you can specify just the network, or both the network and the access token, but you cannot provide the access token alone.
+
+**NOTE**
+
+Per the [documentation](https://thegraph.com/docs/en/hosted-service/deploy-subgraph-hosted/#subgraph-archive-policy) on the Hosted Service:
+
+> A subgraph is defined as "inactive" if it was deployed to the Hosted Service more than 45 days ago, and if it has received 0 queries in the last 30 days.
+
+### [TO-DO] External Deployment to Subgraph Studio
 
 TBD
 
@@ -63,15 +81,15 @@ TBD
 
 Available tasks for this project:
 
-| COMMAND [OPTS]                       | DESCRIPTION |
-|--------------------------------------|---------------------------------------------------------------------------------|
-| `clean [-- all\|subgraph\|hardhat]`  | Clean up local subgraph deployment; `all` arg additionally removes all volumes and the Hardhat node. |
-| `deploy-hardhat -- /path/to/file.ts` | Deploy a local Hardhat node and run a test script. Must specify full path to file as task input argument. |
-| `deploy-hosted [-- detach]`          | Build and deploy subgraph on Hosted Service; `detach` runs container detached. |
-| `deploy-local [-- detach]`           | Build and deploy subgraph on local network; `detach` runs container detached. |
-| `docker-build`                       | Build subgraph Docker image on defined node version base (default: 16-slim). |
-| `gen-abi`                            | Pull latest Set Protocol ABIs into the build environment. |
-| `gen-schema`                         | Compile the subgraph schema but do not deploy the subgraph. |
+| COMMAND [OPTS]                        | DESCRIPTION |
+|---------------------------------------|---------------------------------------------------------------------------------|
+| `clean [-- all\|subgraph\|hardhat]`   | Clean up local subgraph deployment; `all` arg additionally removes all volumes and the Hardhat node. |
+| `deploy-hardhat -- /path/to/file.ts`  | Deploy a local Hardhat node and run a test script. Must specify full path to file as task input argument. |
+| `deploy-hosted [-- NETWORK_HOSTED [SUBGRAPH_ACCESS_TOKEN]]` | Build and deploy subgraph to `NETWORK_HOSTED` on Hosted Service. `SUBGRAPH_ACCESS_TOKEN` must be provided or defined in a private dotenv. |
+| `deploy-local [-- detach]`            | Build and deploy subgraph on local network; `detach` runs container detached. |
+| `docker-build`                        | Build subgraph Docker image on defined node version base (default: 16-slim). |
+| `gen-abi`                             | Pull latest Set Protocol ABIs into the build environment. |
+| `gen-schema [-- hosted]`              | Compile the subgraph schema but do not deploy the subgraph; default target subgraph network is hardhat. |
 
 ## [TO-DO] ADVANCED DEPLOYMENT GUIDES
 
@@ -90,6 +108,13 @@ TBD: Ideas to be covered in this section
 - Entity names cannot end with "s" due to conflict with query API (not currently documented)
 - Use `setToken` for schema fields, not `set` as will conflict will built-in callers
 - Templates must be initialized appropriately (see `ModuleInitialize` event handler for example)
+
+
+`ModuleInitialized` Event Notes
+- `event.address` - `ModuleInitialized` module contract address
+- `event.transaction.hash` - hash of the call transaction that triggered the event
+- `event.params._module` - the initialized module contract address
+
 
 ### Reference Guide
 
