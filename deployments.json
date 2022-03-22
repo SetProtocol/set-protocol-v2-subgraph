@@ -15,7 +15,7 @@
     "network": "matic",
     "subgraphName": "set-protocol-v2-matic",
     "startBlock": 0,
-    "SetTokenCreator": "0x14f0321be5e581abF9d5BC76260bf015Dc04C53d",
+    "SetTokenCreator": "0x14f0321be5e581abF9d5BC76260bf015Dc04C53d"
   },
   "matic-staging-mainnet": {
     "network": "matic",
@@ -51,6 +51,6 @@
     "network": "hardhat",
     "subgraphName": "set-protocol-v2",
     "startBlock": 0,
-    "SetTokenCreator": "0x8d61158a366019ac78db4149d75fff9dda51160d",
+    "SetTokenCreator": "0x8d61158a366019ac78db4149d75fff9dda51160d"
   }
 }
