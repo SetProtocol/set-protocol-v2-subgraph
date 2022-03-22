@@ -50,8 +50,8 @@ tasks:
       SUBGRAPH_ACCESS_TOKEN:
         sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then echo "{{.CLI_ARGS}}" | cut -d" " -s -f2; else echo "{{.SUBGRAPH_ACCESS_TOKEN}}"; fi
     env:
-      DEPLOYMENT: "hosted"
       ACCESS_TOKEN: "{{.SUBGRAPH_ACCESS_TOKEN}}"
+      DEPLOYMENT: "hosted"
       NETWORK_NAME: "{{.NETWORK_NAME}}"
     preconditions:
       - sh: if [ -z "$(ls -A ../abis)" ]; then exit -1; fi
