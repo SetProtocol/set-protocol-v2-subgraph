@@ -54,7 +54,7 @@ tasks:
       DEPLOYMENT: "hosted"
       NETWORK_NAME: "{{.NETWORK_NAME}}"
     preconditions:
-      - sh: if [ -z "$(ls -A ../abis)" ]; then exit -1; fi
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
   deploy-local:
@@ -72,7 +72,27 @@ tasks:
       GRAPH_NODE_IP: "{{.GRAPH_NODE_CONTAINER}}:{{.GRAPH_NODE_PORT}}"
       NETWORK_NAME: "{{.NETWORK_LOCAL}}"
     preconditions:
-      - sh: if [ -z "$(ls -A ../abis)" ]; then exit -1; fi
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
+        msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
+
+  run-local:
+    desc: "Deploy subgraph on running local network then remove container."
+    dir: docker/
+    cmds:
+      - docker-compose -f docker-compose.local.yml run setprotocol-subgraph
+      - docker-compose -f docker-compose.local.yml rm -f setprotocol-subgraph
+    env:
+      DEPLOYMENT: "local"
+      ACCESS_TOKEN: "{{.LOCAL_ACCESS_TOKEN}}"
+      IPFS_IP: "{{.IPFS_CONTAINER}}:{{.IPFS_PORT}}"
+      GRAPH_NODE_IP: "{{.GRAPH_NODE_CONTAINER}}:{{.GRAPH_NODE_PORT}}"
+      NETWORK_NAME: "{{.NETWORK_LOCAL}}"
+    preconditions:
+      - sh: if [ $( docker container inspect -f '{{.State.Status}}' {{.GRAPH_NODE_CONTAINER}} ) != "running" ]; then exit 1; fi
+        msg: "ERROR: Docker container '{{.GRAPH_NODE_CONTAINER}}' is not running."
+      - sh: if [ $( docker container inspect -f '{{.State.Status}}' {{.IPFS_CONTAINER}} ) != "running" ]; then exit 1; fi
+        msg: "ERROR: Docker container '{{.IPFS_CONTAINER}}' is not running."
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
   docker-build:
