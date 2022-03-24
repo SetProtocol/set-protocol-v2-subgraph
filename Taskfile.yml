@@ -58,13 +58,16 @@ tasks:
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
   deploy-local:
-    desc: "Build and deploy subgraph on local network."
+    desc: "Build graph-node and ipfs services and (optionally) deploy subgraph on local network."
     dir: docker/
     cmds:
-      - docker-compose -f docker-compose.local.yml up {{.ARGS}}
+      - docker-compose -f docker-compose.graphnode.yml up {{.DETACH}}
+      - if [ ! "${NODEPLOY}" ]; then docker-compose -f docker-compose.local.yml up; fi
     vars:
-      ARGS:
-        sh: if [ "{{.CLI_ARGS}}" = "detach" ]; then echo "-d"; else echo ""; fi
+      DETACH:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | grep -io detach) ]; then echo "-d"; else echo ""; fi
+      NODEPLOY:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | grep -io nodeploy) ]; then echo true; else echo ""; fi
     env:
       DEPLOYMENT: "local"
       ACCESS_TOKEN: "{{.LOCAL_ACCESS_TOKEN}}"
@@ -75,8 +78,8 @@ tasks:
       - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
-  run-local:
-    desc: "Deploy subgraph on running local network then remove container."
+  deploy-local-subgraph:
+    desc: "Deploy subgraph on running local network."
     dir: docker/
     cmds:
       - docker-compose -f docker-compose.local.yml run setprotocol-subgraph
@@ -117,3 +120,6 @@ tasks:
         sh: if [ "{{.CLI_ARGS}}" = "hosted" ]; then echo "{{.NETWORK_HOSTED}}"; else echo "{{.NETWORK_LOCAL}}"; fi
     env:
       NETWORK_NAME: "{{.NETWORK_NAME}}"
+    preconditions:
+      - sh: if [ -z "$(ls -A ./abis)" ]; then exit 1; fi
+        msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
