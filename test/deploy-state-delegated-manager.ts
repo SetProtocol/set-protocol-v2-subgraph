@@ -5,31 +5,32 @@
  *
  * Setup
  * - Deploy system
- * - Deploy ManagerCore and mock Extension
+ * - Deploy ManagerCore
+ * - Deploy DelegatedManagerFactory
+ * - Deploy IssuanceExtension with IssuanceModule
+ * - Deploy StreamingFeeSplitExtension
+ * - Deploy TradeExtension and TradeModule
+ * - Initialize ManagerCore
  *
- * Case 1: DelegatedManager managed SetToken
- * - Deploy SetToken
- * - Deploy DelegatedManager
- * - Add DelegatedManager to ManagerCore through factory
- * - Transfer ownership to DelegatedManager
+ * Case 1: DelegatedManagerFactory deployed DelegatedManager and SetToken
+ * - Deploy DelegatedManager and SetToken through DelegatedManagerFactory
+ * - Initialize DelegatedManager through DelegatedManagerFactory
  * - Update owner
  * - Update methodologist
  * - Add operatorTwo
  * - Remove operatorOne
  *
- * Case 2: EOA managed SetToken
- * - Deploy SetToken
+ * Case 2: DelegatedManagerFactory deployed DelegatedManager with migrating SetToken
+ * - Deploy SetToken through SetTokenCreator
+ * - Deploy DelegatedManager through DelegatedManagerFactory
+ * - Initialize DelegatedManager through DelegatedManagerFactory
  *
- * Case 3: DelegatedManager managed SetToken migrates to EOA manager
- * - Deploy SetToken
- * - Deploy DelegatedManager
- * - Add DelegatedManager to ManagerCore through factory
- * - Transfer ownership to DelegatedManager
- * - Set manager to EOA
+ * Case 3: EOA managed SetToken
+ * - Deploy SetToken through SetTokenCreator
  */
 
 import "module-alias/register";
-import { getSystemFixture } from "@setprotocol/set-protocol-v2/utils/test/index";
+import { getSystemFixture, getProtocolUtils } from "@setprotocol/set-protocol-v2/utils/test/index";
 import DeployHelper from "@utils/deploys";
 import {
   ether,
@@ -48,8 +49,6 @@ async function main() {
     methodologistTwo,
     operatorOne,
     operatorTwo,
-    factory,
-    otherManager,
   ] = await getAccounts();
 
   // Setup
@@ -57,40 +56,81 @@ async function main() {
 
   // Deploy system
   const deployer = new DeployHelper(ownerOne.wallet);
+  const protocolUtils = getProtocolUtils();
   const setV2Setup = getSystemFixture(ownerOne.address);
   await setV2Setup.initialize();
 
-  // Deploy ManagerCore and mock Extension
+  // Deploy ManagerCore
   const managerCore = await deployer.managerCore.deployManagerCore();
-  await managerCore.initialize([factory.address]);
-  const baseExtension = await deployer.mocks.deployBaseGlobalExtensionMock(managerCore.address);
 
-  // Case 1: DelegatedManager managed SetToken
+  // Deploy DelegatedManagerFactory
+  const delegatedManagerFactory = await deployer.factories.deployDelegatedManagerFactory(
+    managerCore.address,
+    setV2Setup.controller.address,
+    setV2Setup.factory.address
+  );
+
+  // Deploy IssuanceExtension with IssuanceModule
+  const issuanceModule = await deployer.setV2.deployIssuanceModule(setV2Setup.controller.address);
+  await setV2Setup.controller.addModule(issuanceModule.address);
+  const issuanceExtension = await deployer.globalExtensions.deployIssuanceExtension(
+    managerCore.address,
+    issuanceModule.address
+  );
+
+  // Deploy StreamingFeeSplitExtension
+  const streamingFeeSplitExtension = await deployer.globalExtensions.deployStreamingFeeSplitExtension(
+    managerCore.address,
+    setV2Setup.streamingFeeModule.address
+  );
+
+  // Deploy TradeExtension and TradeModule
+  const tradeModule = await deployer.setDeployer.modules.deployTradeModule(setV2Setup.controller.address);
+  await setV2Setup.controller.addModule(tradeModule.address);
+  const tradeExtension = await deployer.globalExtensions.deployTradeExtension(
+    managerCore.address,
+    tradeModule.address
+  );
+
+  // Initialize ManagerCore
+  await managerCore.initialize(
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address],
+    [delegatedManagerFactory.address]
+  );
+
+  // Case 1: DelegatedManagerFactory deployed DelegatedManager and SetToken
   // -----------------------------------------------
 
-  // Deploy SetToken
-  const setTokenOne = await setV2Setup.createSetToken(
-    [setV2Setup.dai.address],
-    [ether(1)],
-    [setV2Setup.issuanceModule.address]
-  );
-
-  // Deploy DelegatedManager
-  const delegatedManagerOne = await deployer.manager.deployDelegatedManager(
-    setTokenOne.address,
+  // Deploy DelegatedManager and SetToken through DelegatedManagerFactory
+  const txOne = await delegatedManagerFactory.connect(ownerOne.wallet).createSetAndManager(
+    [setV2Setup.dai.address, setV2Setup.wbtc.address],
+    [ether(1), ether(.1)],
+    "TestTokenOne",
+    "TTO",
     ownerOne.address,
     methodologistOne.address,
-    [baseExtension.address],
+    [issuanceModule.address, setV2Setup.streamingFeeModule.address, tradeModule.address],
     [operatorOne.address],
-    [setV2Setup.usdc.address, setV2Setup.weth.address],
-    true
+    [setV2Setup.dai.address, setV2Setup.wbtc.address],
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address]
   );
 
-  // Add DelegatedManager to ManagerCore through factory
-  await managerCore.connect(factory.wallet).addManager(delegatedManagerOne.address);
+  const setTokenOneAddress = await protocolUtils.getCreatedSetTokenAddress(txOne.hash);
+  const initializeParamsOne = await delegatedManagerFactory.initializeState(setTokenOneAddress);
+  const delegatedManagerOne = await deployer.manager.getDelegatedManager(initializeParamsOne.manager);
 
-  // Transfer ownership to DelegatedManager
-  await setTokenOne.setManager(delegatedManagerOne.address);
+  // Initialize DelegatedManager through DelegatedManagerFactory
+  const issuanceExtensionOneBytecode = issuanceExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
+  const streamingFeeSplitExtensionOneBytecode = streamingFeeSplitExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
+  const tradeExtensionOneBytecode = tradeExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
+
+  await delegatedManagerFactory.connect(ownerOne.wallet).initialize(
+    setTokenOneAddress,
+    ether(0.5),
+    ownerOne.address,
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address],
+    [issuanceExtensionOneBytecode, streamingFeeSplitExtensionOneBytecode, tradeExtensionOneBytecode]
+  );
 
   // Update owner
   await delegatedManagerOne.connect(ownerOne.wallet).transferOwnership(ownerTwo.address);
@@ -104,45 +144,51 @@ async function main() {
   // Remove operatorOne
   await delegatedManagerOne.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
 
-  // Case 2: EOA managed SetToken
+  // Case 2: DelegatedManagerFactory deployed DelegatedManager with migrating SetToken
   // -----------------------------------------------
 
-  // Deploy SetToken
+  // Deploy SetToken through SetTokenCreator
+  const setTokenTwo = await setV2Setup.createSetToken(
+    [setV2Setup.dai.address],
+    [ether(1)],
+    [issuanceModule.address, setV2Setup.streamingFeeModule.address, tradeModule.address],
+  );
+
+  // Deploy DelegatedManager through DelegatedManagerFactory
+  await delegatedManagerFactory.createManager(
+    setTokenTwo.address,
+    ownerOne.address,
+    methodologistOne.address,
+    [operatorOne.address],
+    [setV2Setup.dai.address, setV2Setup.wbtc.address],
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address]
+  );
+
+  const initializeParamsTwo = await delegatedManagerFactory.initializeState(setTokenTwo.address);
+  const delegatedManagerTwo = await deployer.manager.getDelegatedManager(initializeParamsTwo.manager);
+
+  // Initialize DelegatedManager through DelegatedManagerFactory
+  const issuanceExtensionTwoBytecode = issuanceExtension.interface.encodeFunctionData("initializeExtension", [delegatedManagerTwo.address]);
+  const streamingFeeSplitExtensionTwoBytecode = streamingFeeSplitExtension.interface.encodeFunctionData("initializeExtension", [delegatedManagerTwo.address]);
+  const tradeExtensionTwoBytecode = tradeExtension.interface.encodeFunctionData("initializeExtension", [delegatedManagerTwo.address]);
+
+  await delegatedManagerFactory.connect(ownerOne.wallet).initialize(
+    setTokenTwo.address,
+    ether(0.5),
+    ownerOne.address,
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address],
+    [issuanceExtensionTwoBytecode, streamingFeeSplitExtensionTwoBytecode, tradeExtensionTwoBytecode]
+  );
+
+  // Case 3: EOA managed SetToken
+  // -----------------------------------------------
+
+  // Deploy SetToken through SetTokenCreator
   await setV2Setup.createSetToken(
     [setV2Setup.dai.address],
     [ether(1)],
     [setV2Setup.issuanceModule.address]
   );
-
-  // Case 3: DelegatedManager managed SetToken migrates to EOA manager
-  // -----------------------------------------------
-
-  // Deploy SetToken
-  const setTokenTwo = await setV2Setup.createSetToken(
-    [setV2Setup.dai.address],
-    [ether(1)],
-    [setV2Setup.issuanceModule.address]
-  );
-
-  // Deploy DelegatedManager
-  const delegatedManagerTwo = await deployer.manager.deployDelegatedManager(
-    setTokenTwo.address,
-    ownerOne.address,
-    methodologistOne.address,
-    [baseExtension.address],
-    [operatorOne.address],
-    [setV2Setup.usdc.address, setV2Setup.weth.address],
-    true
-  );
-
-  // Add DelegatedManager to ManagerCore through factory
-  await managerCore.connect(factory.wallet).addManager(delegatedManagerTwo.address);
-
-  // Transfer ownership to DelegatedManager
-  await setTokenTwo.setManager(delegatedManagerTwo.address);
-
-  // Transfer ownership to EOA
-  await delegatedManagerTwo.setManager(otherManager.address);
 }
 
 main().catch(e => {
