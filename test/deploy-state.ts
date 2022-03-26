@@ -14,11 +14,11 @@
 import "module-alias/register";
 import { BigNumber } from "@ethersproject/bignumber";
 import { ethers } from "hardhat";
-import { EMPTY_BYTES, ONE_YEAR_IN_SECONDS, ZERO } from "@setprotocol/set-protocol-v2/utils/constants";
-import DeployHelper from "@setprotocol/set-protocol-v2/utils/deploys";
-import { ether } from "@setprotocol/set-protocol-v2/utils/index";
-import { getAccounts, getSystemFixture, increaseTimeAsync } from "@setprotocol/set-protocol-v2/utils/test/index";
-import { StreamingFeeState } from "@setprotocol/set-protocol-v2/utils/types";
+import { EMPTY_BYTES, ONE_YEAR_IN_SECONDS, ZERO } from "@setprotocol/set-protocol-v2/dist/utils/constants";
+import DeployHelper from "@setprotocol/set-protocol-v2/dist/utils/deploys";
+import { ether } from "@setprotocol/set-protocol-v2/dist/utils/index";
+import { getAccounts, getSystemFixture, increaseTimeAsync } from "@setprotocol/set-protocol-v2/dist/utils/test/index";
+import { StreamingFeeState } from "@setprotocol/set-protocol-v2/dist/utils/types";
 
 async function main() {
 

@@ -30,7 +30,7 @@
  */
 
 import "module-alias/register";
-import { getSystemFixture, getProtocolUtils } from "@setprotocol/set-protocol-v2/utils/test/index";
+import { getSystemFixture, getProtocolUtils } from "@setprotocol/set-protocol-v2/dist/utils/test/index";
 import DeployHelper from "@utils/deploys";
 import {
   ether,
