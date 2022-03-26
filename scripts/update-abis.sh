@@ -41,9 +41,6 @@ cp .env.default .env
 yarn && yarn compile
 cd artifacts
 
-pwd
-env
-
 # Copy the contract ABI code into the bind mounted working directory
 copy_contracts "${PROTOCOL_CONTRACTS[@]}"
 
@@ -67,9 +64,6 @@ cd $(echo "${STRATEGIES_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile
 cd artifacts
-
-pwd
-env
 
 # Copy the contract ABI code into the bind mounted working directory
 copy_contracts "${STRATEGIES_CONTRACTS[@]}"
