@@ -25,7 +25,13 @@
  * - Deploy DelegatedManager through DelegatedManagerFactory
  * - Initialize DelegatedManager through DelegatedManagerFactory
  *
- * Case 3: EOA managed SetToken
+ * Case 3: DelegatedManagerFactory deployed DelegatedManager and SetToken, migrate to EOA manager
+ * - Deploy DelegatedManager and SetToken through DelegatedManagerFactory
+ * - Initialize DelegatedManager through DelegatedManagerFactory
+ * - Remove extensions from DelegatedManager
+ * - Change SetToken manager to EOA manager
+ *
+ * Case 4: EOA managed SetToken
  * - Deploy SetToken through SetTokenCreator
  */
 
@@ -51,6 +57,7 @@ async function main() {
     methodologistTwo,
     operatorOne,
     operatorTwo,
+    otherManager,
   ] = await getAccounts();
 
   // Setup
@@ -148,7 +155,10 @@ async function main() {
     ]
   );
 
-  const tradeExtensionOneBytecode = tradeExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
+  const tradeExtensionOneBytecode = tradeExtension.interface.encodeFunctionData(
+    "initializeModuleAndExtension",
+    [delegatedManagerOne.address]
+  );
 
   await delegatedManagerFactory.connect(ownerOne.wallet).initialize(
     setTokenOneAddress,
@@ -206,7 +216,76 @@ async function main() {
     [issuanceExtensionTwoBytecode, streamingFeeSplitExtensionTwoBytecode, tradeExtensionTwoBytecode]
   );
 
-  // Case 3: EOA managed SetToken
+  // Case 3: DelegatedManagerFactory deployed DelegatedManager and SetToken, migrate to EOA manager
+  // -----------------------------------------------
+
+  // Deploy DelegatedManager and SetToken through DelegatedManagerFactory
+  const txThree = await delegatedManagerFactory.connect(ownerOne.wallet).createSetAndManager(
+    [setV2Setup.dai.address, setV2Setup.wbtc.address],
+    [ether(1), ether(.1)],
+    "TestTokenThree",
+    "TTT",
+    ownerOne.address,
+    methodologistOne.address,
+    [issuanceModule.address, setV2Setup.streamingFeeModule.address, tradeModule.address],
+    [operatorOne.address],
+    [setV2Setup.dai.address, setV2Setup.wbtc.address],
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address]
+  );
+
+  const setTokenThreeAddress = await protocolUtils.getCreatedSetTokenAddress(txThree.hash);
+  const initializeParamsThree = await delegatedManagerFactory.initializeState(setTokenThreeAddress);
+  const delegatedManagerThree = await deployer.manager.getDelegatedManager(initializeParamsThree.manager);
+
+  // Initialize DelegatedManager through DelegatedManagerFactory
+  const issuanceExtensionThreeBytecode = issuanceExtension.interface.encodeFunctionData(
+    "initializeModuleAndExtension",
+    [
+      delegatedManagerThree.address,
+      ether(0.1),
+      ether(0.01),
+      ether(0.01),
+      delegatedManagerThree.address,
+      ADDRESS_ZERO
+    ]
+  );
+
+  const feeSettingsThree = {
+    feeRecipient: delegatedManagerThree.address,
+    maxStreamingFeePercentage: ether(0.05),
+    streamingFeePercentage: ether(0.01),
+    lastStreamingFeeTimestamp: ZERO,
+  } as StreamingFeeState;
+  const streamingFeeSplitExtensionThreeBytecode = streamingFeeSplitExtension.interface.encodeFunctionData(
+    "initializeModuleAndExtension",
+    [
+      delegatedManagerThree.address,
+      feeSettingsThree
+    ]
+  );
+
+  const tradeExtensionThreeBytecode = tradeExtension.interface.encodeFunctionData(
+    "initializeModuleAndExtension",
+    [delegatedManagerThree.address]
+  );
+
+  await delegatedManagerFactory.connect(ownerOne.wallet).initialize(
+    setTokenThreeAddress,
+    ether(0.5),
+    ownerOne.address,
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address],
+    [issuanceExtensionThreeBytecode, streamingFeeSplitExtensionThreeBytecode, tradeExtensionThreeBytecode]
+  );
+
+  // Remove extensions from DelegatedManager
+  await delegatedManagerThree.connect(ownerOne.wallet).removeExtensions(
+    [issuanceExtension.address, streamingFeeSplitExtension.address, tradeExtension.address]
+  );
+
+  // Change SetToken manager to EOA manager
+  await delegatedManagerThree.connect(ownerOne.wallet).setManager(otherManager.address);
+
+  // Case 4: EOA managed SetToken
   // -----------------------------------------------
 
   // Deploy SetToken through SetTokenCreator
