@@ -36,6 +36,8 @@ import {
   ether,
   getAccounts,
 } from "@utils/index";
+import { ADDRESS_ZERO, ZERO } from "@utils/constants";
+import { StreamingFeeState } from "@utils/types";
 
 
 async function main() {
@@ -120,8 +122,32 @@ async function main() {
   const delegatedManagerOne = await deployer.manager.getDelegatedManager(initializeParamsOne.manager);
 
   // Initialize DelegatedManager through DelegatedManagerFactory
-  const issuanceExtensionOneBytecode = issuanceExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
-  const streamingFeeSplitExtensionOneBytecode = streamingFeeSplitExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
+  const issuanceExtensionOneBytecode = issuanceExtension.interface.encodeFunctionData(
+    "initializeModuleAndExtension",
+    [
+      delegatedManagerOne.address,
+      ether(0.1),
+      ether(0.01),
+      ether(0.01),
+      delegatedManagerOne.address,
+      ADDRESS_ZERO
+    ]
+  );
+
+  const feeSettingsOne = {
+    feeRecipient: delegatedManagerOne.address,
+    maxStreamingFeePercentage: ether(0.05),
+    streamingFeePercentage: ether(0.01),
+    lastStreamingFeeTimestamp: ZERO,
+  } as StreamingFeeState;
+  const streamingFeeSplitExtensionOneBytecode = streamingFeeSplitExtension.interface.encodeFunctionData(
+    "initializeModuleAndExtension",
+    [
+      delegatedManagerOne.address,
+      feeSettingsOne
+    ]
+  );
+
   const tradeExtensionOneBytecode = tradeExtension.interface.encodeFunctionData("initializeModuleAndExtension", [delegatedManagerOne.address]);
 
   await delegatedManagerFactory.connect(ownerOne.wallet).initialize(
