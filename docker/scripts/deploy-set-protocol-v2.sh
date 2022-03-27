@@ -4,10 +4,9 @@ set -e
 
 ROOT_DIR=$(pwd)
 
-if [ ! -d "set-protocol-v2" ]; then
-    # git clone -q https://github.com/SetProtocol/set-protocol-v2.git
-    git clone -q https://github.com/SetProtocol/set-v2-strategies.git
-fi
+# if [ ! -d "set-protocol-v2" ]; then
+#     git clone -q https://github.com/SetProtocol/set-protocol-v2.git
+# fi
 
 # cd "${ROOT_DIR}/set-protocol-v2"
 
@@ -18,6 +17,10 @@ fi
 
 # # Install the dependencies
 # yarn install
+
+if [ ! -d "set-v2-strategies" ]; then
+    git clone -q https://github.com/SetProtocol/set-v2-strategies.git
+fi
 
 cd "${ROOT_DIR}/set-v2-strategies"
 

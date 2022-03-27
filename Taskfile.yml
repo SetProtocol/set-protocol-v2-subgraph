@@ -31,7 +31,7 @@ tasks:
     desc: "Deploy a local Hardhat node and test script. Must specify full path to file as task input argument."
     dir: docker/
     cmds:
-      - docker-compose -f docker-compose.hardhat.yml run --name {{.HARDHAT_IP}} --rm -w /app -v {{.CLI_ARGS}}:/tmp/{{.DEPLOY_SCRIPT}} hardhat-build bash /app/scripts/deploy-hardhat.sh
+      - docker-compose -f docker-compose.hardhat.yml run --name {{.HARDHAT_IP}} --rm -v {{.CLI_ARGS}}:/tmp/{{.DEPLOY_SCRIPT}} hardhat-build bash /app/scripts/deploy-hardhat.sh
     vars:
       DEPLOY_SCRIPT:
         sh: basename "{{.CLI_ARGS}}"
@@ -108,7 +108,12 @@ tasks:
     desc: "Pull latest Set Protocol ABIs into the build environment."
     cmds:
       # Note the following command requires node ver 16 or below (only 12 and 16 tested working)
-      - docker run --rm -v $(pwd)/abis:/subgraph/abis -v $(pwd)/scripts:/subgraph/scripts -w /subgraph {{.SET_IMAGE_NAME}}:node-{{.NODE_VER}} bash scripts/update-abis.sh
+      - docker-compose -f docker/docker-compose.abi.yml run --rm gen-abi bash scripts/update-abis.sh
+    env:
+      PROTOCOL_REPO_URL: "{{.PROTOCOL_REPO_URL}}"
+      PROTOCOL_REPO_BRANCH_OR_TAG: "{{.PROTOCOL_REPO_BRANCH_OR_TAG}}"
+      STRATEGIES_REPO_URL: "{{.STRATEGIES_REPO_URL}}"
+      STRATEGIES_REPO_BRANCH_OR_TAG: "{{.STRATEGIES_REPO_BRANCH_OR_TAG}}"
 
   gen-schema:
     desc: "Generate schema intermediate artifacts for development without a full deploy."

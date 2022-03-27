@@ -12,9 +12,6 @@ function copy_contracts() {
   done
 }
 
-PROTOCOL_REPO_URL="https://github.com/SetProtocol/set-protocol-v2"
-STRATEGIES_REPO_URL="https://github.com/SetProtocol/set-v2-strategies"
-
 # Remove existing ABIs
 if [ ! -z "$(ls -A /subgraph/abis)" ]; then
   echo "WARNING: Existing ABIs found. Removing..."
@@ -30,13 +27,15 @@ PROTOCOL_CONTRACTS=(
   "contracts/protocol/Controller"
   "contracts/protocol/SetToken"
   "contracts/protocol/SetTokenCreator"
-  "contracts/protocol/modules/StreamingFeeModule"
-  "contracts/protocol/modules/TradeModule"
+  "contracts/protocol/modules/v1/StreamingFeeModule"
+  "contracts/protocol/modules/v1/TradeModule"
 )
 
 # Clone and compile the Set Protocol V2 contracts repo
 cd /tmp
-git clone -q --depth=1 "${PROTOCOL_REPO_URL}"
+ls -al
+git clone -q --depth=1 --branch "${PROTOCOL_REPO_BRANCH_OR_TAG}" "${PROTOCOL_REPO_URL}"
+ls -al
 cd $(echo "${PROTOCOL_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile
@@ -58,7 +57,9 @@ STRATEGIES_CONTRACTS=(
 
 # Clone and compile the Set V2 Strategies contracts repo
 cd /tmp
-git clone -q --depth=1 "${STRATEGIES_REPO_URL}"
+ls -al
+git clone -q --depth=1 --branch "${STRATEGIES_REPO_BRANCH_OR_TAG}" "${STRATEGIES_REPO_URL}"
+ls -al
 cd $(echo "${STRATEGIES_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile
