@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+
+  gen-abi:
+    image: ${SET_IMAGE_NAME}:node-${NODE_VER}
+    environment:
+      PROTOCOL_REPO_URL: ${PROTOCOL_REPO_URL}
+      PROTOCOL_REPO_BRANCH_OR_TAG: ${PROTOCOL_REPO_BRANCH_OR_TAG}
+      STRATEGIES_REPO_URL: ${STRATEGIES_REPO_URL}
+      STRATEGIES_REPO_BRANCH_OR_TAG: ${STRATEGIES_REPO_BRANCH_OR_TAG}
+    working_dir: /subgraph
+    volumes:
+      - ../abis:/subgraph/abis
+      - ../scripts:/subgraph/scripts

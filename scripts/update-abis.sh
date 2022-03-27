@@ -2,8 +2,15 @@
 
 set -e
 
-PROTOCOL_REPO_URL="https://github.com/SetProtocol/set-protocol-v2"
-STRATEGIES_REPO_URL="https://github.com/SetProtocol/set-v2-strategies"
+# Function to copy contract ABI code into subgraph project
+function copy_contracts() {
+  local contracts=("$@")
+  for cpath in "${contracts[@]}"; do
+    local cname=$(echo "${cpath}" | rev | cut -d"/" -f1 | rev)
+    echo "Copying contract $cpath.sol/$cname.json"
+    cp "$cpath.sol/$cname.json" "/subgraph/abis"
+  done
+}
 
 # Remove existing ABIs
 if [ ! -z "$(ls -A /subgraph/abis)" ]; then
@@ -11,56 +18,52 @@ if [ ! -z "$(ls -A /subgraph/abis)" ]; then
   rm -rf /subgraph/abis/*
 fi
 
+## REPO set-protocol-v2 CONTRACTS
+## ------------------------------
+
+# Define the path to each contract of interest for the subgraph development
+# Note: Path is relative to repo root dir
+PROTOCOL_CONTRACTS=(
+  "contracts/protocol/Controller"
+  "contracts/protocol/SetToken"
+  "contracts/protocol/SetTokenCreator"
+  "contracts/protocol/modules/v1/StreamingFeeModule"
+  "contracts/protocol/modules/v1/TradeModule"
+)
+
 # Clone and compile the Set Protocol V2 contracts repo
 cd /tmp
-git clone -q --depth=1 "${PROTOCOL_REPO_URL}"
+ls -al
+git clone -q --depth=1 --branch "${PROTOCOL_REPO_BRANCH_OR_TAG}" "${PROTOCOL_REPO_URL}"
+ls -al
 cd $(echo "${PROTOCOL_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile
 cd artifacts
 
-# Define the Set contracts of interest for the subgraph development
-PROTOCOL_CONTRACTS=(
-  SetToken
-  SetTokenCreator
-)
-
-# Define the Set module contracts of interest for the subgraph development
-MODULE_CONTRACTS=(
-  StreamingFeeModule
-  TradeModule
-)
-
 # Copy the contract ABI code into the bind mounted working directory
-for c in "${PROTOCOL_CONTRACTS[@]}"; do
-  cp "contracts/protocol/$c.sol/$c.json" "/subgraph/abis"
-done
-for c in "${MODULE_CONTRACTS[@]}"; do
-  cp "contracts/protocol/modules/$c.sol/$c.json" "/subgraph/abis"
-done
+copy_contracts "${PROTOCOL_CONTRACTS[@]}"
+
+## REPO set-v2-strategies CONTRACTS
+## --------------------------------
+
+# Define the path to each contract of interest for the subgraph development
+# Note: Path is relative to repo root dir
+STRATEGIES_CONTRACTS=(
+  "contracts/ManagerCore"
+  "contracts/factories/DelegatedManagerFactory"
+  "contracts/manager/DelegatedManager"
+)
 
 # Clone and compile the Set V2 Strategies contracts repo
 cd /tmp
-git clone -q --depth=1 "${STRATEGIES_REPO_URL}"
+ls -al
+git clone -q --depth=1 --branch "${STRATEGIES_REPO_BRANCH_OR_TAG}" "${STRATEGIES_REPO_URL}"
+ls -al
 cd $(echo "${STRATEGIES_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile
 cd artifacts
 
-# Define the Set manager factory contracts of interest for the subgraph development
-MANAGER_FACTORY_CONTRACTS=(
-  DelegatedManagerFactory
-)
-
-# Define the Set manager contracts of interest for the subgraph development
-MANAGER_CONTRACTS=(
-  DelegatedManager
-)
-
 # Copy the contract ABI code into the bind mounted working directory
-for c in "${MANAGER_FACTORY_CONTRACTS[@]}"; do
-  cp "contracts/factories/$c.sol/$c.json" "/subgraph/abis"
-done
-for c in "${MANAGER_CONTRACTS[@]}"; do
-  cp "contracts/manager/$c.sol/$c.json" "/subgraph/abis"
-done
+copy_contracts "${STRATEGIES_CONTRACTS[@]}"
