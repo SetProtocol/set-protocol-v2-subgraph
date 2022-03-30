@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  gen-schema:
+    image: ${SET_IMAGE_NAME}:node-${NODE_VER}
+    environment:
+      NETWORK_NAME: ${NETWORK_NAME:-hardhat}
+    volumes:
+      - ../:/subgraph
+      - setprotocol-subgraph-node_modules:/subgraph/node_modules
+    working_dir: /subgraph
+    command: ["sh", "./scripts/gen-schema.sh"]
+
+volumes:
+  setprotocol-subgraph-node_modules:
+    external: false

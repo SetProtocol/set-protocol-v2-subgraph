@@ -57,9 +57,7 @@ STRATEGIES_CONTRACTS=(
 
 # Clone and compile the Set V2 Strategies contracts repo
 cd /tmp
-ls -al
 git clone -q --depth=1 --branch "${STRATEGIES_REPO_BRANCH_OR_TAG}" "${STRATEGIES_REPO_URL}"
-ls -al
 cd $(echo "${STRATEGIES_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile

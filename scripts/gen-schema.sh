@@ -8,6 +8,11 @@ if [ -d "./generated" ]; then
   rm -rf ./generated
 fi
 
+# Install node dependencies (note: into named Docker volume, not on bind mount to host)
+npm config set fetch-retry-mintimeout 20000
+npm config set fetch-retry-maxtimeout 120000
+npm install --yes --include=dev typescript ts-node handlebars @graphprotocol/graph-cli @graphprotocol/graph-ts
+
 # Instantiate the environment based on target network (e.g., hardhat, hosted)
 npx ts-node ./scripts/generate-deployment.ts ${NETWORK_NAME}
 

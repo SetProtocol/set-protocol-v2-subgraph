@@ -1,20 +1,14 @@
-type Protocol @entity {
-  # protocol version
-  id: ID!
-  # cumulative number of managers
-  # TO-DO: does not take into account inactive managers with zero SetTokens
-  managerCount: Int!
-  # cumulative number of SetTokens created
-  setTokenCount: Int!
-  # derived fields
-  managers: [Manager!]! @derivedFrom(field: "protocol")
-  setTokens: [SetToken!]! @derivedFrom(field: "protocol")
-}
-
 # NOTE: This entity is depcrecated and will be removed
 type SetTokenCount @entity {
   id: ID!
   count: BigInt!
+}
+
+type Controller @entity {
+  id: ID!           # Controller ID (= "1")
+  address: String!  # Controller contract address
+  # derived fields
+  setTokens: [SetToken!]! @derivedFrom(field: "controller")
 }
 
 type Manager @entity {
@@ -22,12 +16,18 @@ type Manager @entity {
   # NOTE: This field is deprecated and will be removed
   address: String!
 
-  # manager address
-  id: ID!
-  # protocol version
-  protocol: Protocol!
+  id: ID!       # manager address
+  type: String! # manager type
   # derived fields
   setTokens: [SetToken!]! @derivedFrom(field: "manager")
+}
+
+type DelegatedManager @entity {
+  id: ID!                       # contract address
+  owner: Owner                  # owner address
+  methodologist: Methodologist  # methodologist address
+  setToken: SetToken!           # linked SetToken (only 1-to-1)
+  operators: [Operator!]        # Operator associations
 }
 
 type SetToken @entity {
@@ -35,90 +35,103 @@ type SetToken @entity {
   # NOTE: This field is deprecated and will be removed
   address: String!
 
-  # contract address
-  id: ID!
-  # protocol version  
-  protocol: Protocol!
-  # name of Set
-  name: String!
-  # symbol of Set
-  symbol: String!
-  # block timestamp
-  inception: BigInt!
-  # manager address
-  manager: Manager!
+  id: ID!                   # contract address
+  controller: Controller!   # associated Controller
+  inception: BigInt!        # block timestamp
+  manager: Manager!         # associated Manager
+  name: String!             # name of Set
+  symbol: String!           # symbol of Set
+  activityLog: ActivityLog! # log of events
+}
+
+type Owner @entity {
+  id: ID!                   # owner address
+  setTokens: [String!]      # associated SetToken addresses
+}
+
+type Methodologist @entity {
+  id: ID!                   # methodologist address
+  setTokens: [String!]      # associated SetToken addresses
+}
+
+type Operator @entity {
+  id: ID!                   # operator address
+  setTokens: [String!]      # associated SetToken addresses
+}
+
+type ActivityLog @entity {
+  id: ID! # SetToken address
   # derived fields
-  feeRecipientUpdates: [FeeRecipientUpdate!]! @derivedFrom(field: "setToken")
-  managerUpdates: [ManagerUpdate!]! @derivedFrom(field: "setToken")
-  streamingFeeAccrues: [StreamingFeeAccrue!]! @derivedFrom(field: "setToken")
-  streamingFeeUpdates: [StreamingFeeUpdate!]! @derivedFrom(field: "setToken")
-  rebalanceTrades: [RebalanceTrade!]! @derivedFrom(field: "setToken")
+  feeRecipientUpdates: [FeeRecipientUpdate!] @derivedFrom(field: "activityLog")
+  managerUpdates: [ManagerUpdate!] @derivedFrom(field: "activityLog")
+  streamingFeeAccrues: [StreamingFeeAccrue!] @derivedFrom(field: "activityLog")
+  streamingFeeUpdates: [StreamingFeeUpdate!] @derivedFrom(field: "activityLog")
+  rebalanceTrades: [RebalanceTrade!] @derivedFrom(field: "activityLog")
+  ownerUpdates: [OwnerUpdate!] @derivedFrom(field: "activityLog")
+  methodologistUpdates: [MethodologistUpdate!] @derivedFrom(field: "activityLog")
+  operatorUpdates: [OperatorUpdate!] @derivedFrom(field: "activityLog")
 }
 
 type FeeRecipientUpdate @entity {
-  # transaction hash
-  id: ID!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # address of new recipient
-  address: String!
-  setToken: SetToken!
+  id: ID!               # transaction hash
+  timestamp: BigInt!    # timestamp of transaction
+  address: String!      # address of new recipient
+  activityLog: ActivityLog! # associated ActivityLog
 }
 
 type ManagerUpdate @entity {
-  # transaction hash
-  id: ID!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # address of old manager
-  oldManager: String!
-  # address of new manager
-  newManager: String!
-  # associated SetToken
-  setToken: SetToken!
+  id: ID!               # transaction hash
+  timestamp: BigInt!    # timestamp of transaction
+  oldManager: String!   # address of old manager
+  newManager: String!   # address of new manager
+  activityLog: ActivityLog! # associated ActivityLog
 }
 
 type StreamingFeeAccrue @entity {
-  # transaction hash
-  id: ID!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # amount of Sets accrued to manager as fee
-  managerFee: BigInt!
-  # amount of Sets accrued to protocol as fee
-  protocolFee: BigInt!
-  # associated SetToken
-  setToken: SetToken!
+  id: ID!               # transaction hash
+  timestamp: BigInt!    # timestamp of transaction
+  managerFee: BigInt!   # amount of Sets accrued to manager as fee
+  protocolFee: BigInt!  # amount of Sets accrued to protocol as fee
+  activityLog: ActivityLog! # associated ActivityLog
 }
 
 type StreamingFeeUpdate @entity {
-  # transaction hash
-  id: ID!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # new streaming fee
-  fee: BigInt!
-  # associated SetToken
-  setToken: SetToken!
+  id: ID!               # transaction hash
+  timestamp: BigInt!    # timestamp of transaction
+  fee: BigInt!          # new streaming fee
+  activityLog: ActivityLog! # associated ActivityLog
 }
 
 type RebalanceTrade @entity {
-  # transaction hash
-  id: ID!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # name of the exchange in integrations registry
-  exchange: String!
-  # address of token sent to exchange
-  sendToken: String!
-  # address of token received from exchange
-  receiveToken: String!
-  # net total tokens sent
-  totalSendAmount: BigInt!
-  # net total tokens received
-  totalReceiveAmount: BigInt!
-  # protocol fee
-  fee: BigInt!
-  # associated SetToken
-  setToken: SetToken!
+  id: ID!                     # transaction hash
+  timestamp: BigInt!          # timestamp of transaction
+  exchange: String!           # name of the exchange in integrations registry
+  sendToken: String!          # address of token sent to exchange
+  receiveToken: String!       # address of token received from exchange
+  totalSendAmount: BigInt!    # net total tokens sent
+  totalReceiveAmount: BigInt! # net total tokens received
+  fee: BigInt!                # protocol fee
+  activityLog: ActivityLog!   # associated ActivityLog
+}
+
+type OwnerUpdate @entity {
+  id: ID!                     # transaction hash
+  address: String!            # new owner address
+  timestamp: BigInt!          # timestamp of transaction
+  activityLog: ActivityLog! # associated ActivityLog
+}
+
+type MethodologistUpdate @entity {
+  id: ID!                     # transaction hash
+  address: String!            # new methodologist address
+  timestamp: BigInt!          # timestamp of transaction
+  activityLog: ActivityLog!   # associated ActivityLog
+}
+
+type OperatorUpdate @entity {
+  id: ID!                     # transaction hash
+  action: String!             # "OperatorAdded" or "OperatorRemoved"
+  address: String!            # target operator address
+  timestamp: BigInt!          # timestamp of transaction
+  activityLog: ActivityLog!   # associated ActivityLog
 }

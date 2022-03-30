@@ -115,7 +115,7 @@ async function main() {
     [setV2Setup.dai.address, setV2Setup.wbtc.address],
     [ether(1), ether(.1)],
     "TestTokenOne",
-    "TTO",
+    "TT1",
     ownerOne.address,
     methodologistOne.address,
     [issuanceModule.address, setV2Setup.streamingFeeModule.address, tradeModule.address],
@@ -178,7 +178,7 @@ async function main() {
   await delegatedManagerOne.connect(ownerTwo.wallet).addOperators([operatorTwo.address]);
 
   // Remove operatorOne
-  await delegatedManagerOne.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
+  // await delegatedManagerOne.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
 
   // Case 2: DelegatedManagerFactory deployed DelegatedManager with migrating SetToken
   // -----------------------------------------------
@@ -188,6 +188,9 @@ async function main() {
     [setV2Setup.dai.address],
     [ether(1)],
     [issuanceModule.address, setV2Setup.streamingFeeModule.address, tradeModule.address],
+    ownerOne.address,
+    "TestTokenTwo",
+    "TT2"
   );
 
   // Deploy DelegatedManager through DelegatedManagerFactory
@@ -224,7 +227,7 @@ async function main() {
     [setV2Setup.dai.address, setV2Setup.wbtc.address],
     [ether(1), ether(.1)],
     "TestTokenThree",
-    "TTT",
+    "TT3",
     ownerOne.address,
     methodologistOne.address,
     [issuanceModule.address, setV2Setup.streamingFeeModule.address, tradeModule.address],
@@ -292,7 +295,10 @@ async function main() {
   await setV2Setup.createSetToken(
     [setV2Setup.dai.address],
     [ether(1)],
-    [setV2Setup.issuanceModule.address]
+    [setV2Setup.issuanceModule.address],
+    otherManager.address,
+    "TestTokenFour",
+    "TT4"
   );
 }
 

@@ -21,7 +21,8 @@
     "network": "matic",
     "subgraphName": "set-protocol-v2-matic-staging",
     "startBlock": 16655167,
-    "SetTokenCreator": "0x2907206b253665eef4776b8e684d61afd957b974"
+    "Controller": "0x719E5B865dE407bf38647C1625D193E0CE42111D",
+    "ManagerCore": "0x6443E67CbCF1C527B040b8b4a90F9e9229d790e4"
   },
   "arbitrum-staging-mainnet": {
     "network": "arbitrum-one",
@@ -51,6 +52,7 @@
     "network": "hardhat",
     "subgraphName": "set-protocol-v2",
     "startBlock": 0,
-    "SetTokenCreator": "0x8d61158a366019ac78db4149d75fff9dda51160d"
+    "Controller": "0x1dc4c1cefef38a777b15aa20260a54e584b16c48",
+    "ManagerCore": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15"
   }
 }
