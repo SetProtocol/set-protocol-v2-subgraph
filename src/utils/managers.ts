@@ -8,7 +8,8 @@ import {
   Operator,
   OperatorUpdate,
   Owner,
-  OwnerUpdate
+  OwnerUpdate,
+  SetToken
 } from "../../generated/schema";
 import {
   DelegatedManagerFactory as DelegatedManagerFactoryTemplate,
@@ -95,7 +96,7 @@ export namespace managers {
     // associated Owner, Methodologist, and Operators
     if (delegated_managers.isDelegatedManager(oldManagerId)) {
       let dm = delegated_managers.getDelegatedManager(oldManagerId);
-      delegated_managers.unmapSetTokenFromDelegatedManager(dm, set.id);
+      delegated_managers.unmapSetTokenFromDelegatedManager(dm, set);
     }
     // Index the event
     const id = event.transaction.hash.toHexString();
@@ -263,12 +264,13 @@ export namespace delegated_managers {
     delegatedManager.save();
     // Add SetToken to new Owner entity
     const setId = (delegatedManager.setToken != null) ? delegatedManager.setToken as string : constants.ZERO_ADDRESS.toHexString();
-    mapSetTokenToAddress(owner, setId);
+    const set = sets.getSetToken(setId);
+    mapSetTokenToAddress(owner, set);
     // Remove SetToken from previous Owner (if not ZERO_ADDRESS)
     const previousOwnerId = event.params.previousOwner.toHexString();
     if (previousOwnerId != constants.ZERO_ADDRESS.toHexString()) {
       let previousOwner = getOwner(previousOwnerId);
-      unmapSetTokenFromAddress(previousOwner, setId);
+      unmapSetTokenFromAddress(previousOwner, set);
     }
     // Index the event
     const eventId = event.transaction.hash.toHexString();
@@ -294,11 +296,12 @@ export namespace delegated_managers {
     delegatedManager.save();
     // Add SetToken to Methodologist entity
     const setId = (delegatedManager.setToken != null) ? delegatedManager.setToken as string : constants.ZERO_ADDRESS.toHexString();
-    mapSetTokenToAddress(methodologist, setId);
+    const set = sets.getSetToken(setId);
+    mapSetTokenToAddress(methodologist, set);
     // Remove SetToken from previous Methodologist entity, if it was set
     if (oldMethodologistId) {
       let oldMethodologist = getMethodologist(oldMethodologistId);
-      unmapSetTokenFromAddress(oldMethodologist, setId);
+      unmapSetTokenFromAddress(oldMethodologist, set);
     }
     // Index the event
     const eventId = event.transaction.hash.toHexString();
@@ -320,7 +323,8 @@ export namespace delegated_managers {
     let delegatedManager = getDelegatedManager(event.address.toHexString());
     // Add SetToken to Operator entity
     const setId = (delegatedManager.setToken != null) ? delegatedManager.setToken as string : constants.ZERO_ADDRESS.toHexString() as string;
-    mapSetTokenToAddress(operator, setId);
+    const set = sets.getSetToken(setId);
+    mapSetTokenToAddress(operator, set);
     // Add Operator on DelegatedManager
     let operators = delegatedManager.operators;
     if (!operators) operators = [operator.id];
@@ -348,7 +352,8 @@ export namespace delegated_managers {
     let delegatedManager = getDelegatedManager(event.address.toHexString());
     // Remove SetToken from Operator entity
     const setId = (delegatedManager.setToken != null) ? delegatedManager.setToken as string : constants.ZERO_ADDRESS.toHexString() as string;
-    unmapSetTokenFromAddress(operator, setId);
+    const set = sets.getSetToken(setId);
+    unmapSetTokenFromAddress(operator, set);
     // Remove Operator from DelegatedManager
     const operators = delegatedManager.operators;
     if (operators) {
@@ -373,14 +378,14 @@ export namespace delegated_managers {
    * Map a SetToken address to a given user (Owner, Methodologist, or Operator)
    *
    * @param user  Owner, Methodologist, or Operator entity
-   * @param setId ID of the SetToken to add
+   * @param set   SetToken to add
    */
-  export function mapSetTokenToAddress<T>(user: T, setId: string): void {
+  export function mapSetTokenToAddress<T>(user: T, set: SetToken): void {
     // Do not map to ZERO_ADDRESS
     if (user.id == constants.ZERO_ADDRESS.toHexString()) return;
     let setTokens = user.setTokens;
-    if (!setTokens) setTokens = [setId];
-    else setTokens.push(setId);
+    if (!setTokens) setTokens = [set.id];
+    else setTokens.push(set.id);
     user.setTokens = setTokens;
     user.save();
   }
@@ -390,14 +395,14 @@ export namespace delegated_managers {
    * or Operator)
    *
    * @param user  Owner, Methodologist, or Operator entity
-   * @param setId ID of the SetToken to remove
+   * @param set   SetToken to remove
    */
-  export function unmapSetTokenFromAddress<T>(user: T, setId: string): void {
+  export function unmapSetTokenFromAddress<T>(user: T, set: SetToken): void {
     const setTokens = user.setTokens;
     if (!setTokens) return;
     let newSet = new Array<string>(0);
     for (let i = 0; i < setTokens.length; i++)
-      if (setTokens[i] != setId)
+      if (set && setTokens[i] != set.id)
         newSet.push(setTokens[i]);
     user.setTokens = newSet;
     user.save();
@@ -408,20 +413,20 @@ export namespace delegated_managers {
    * For when a DM-managed SetToken is moved to an EOA manager
    *
    * @param delegatedManager  DelegatedManager entity
-   * @param setId             ID of the SetToken to remove
+   * @param set               SetToken to remove
    */
-  export function unmapSetTokenFromDelegatedManager(delegatedManager: DelegatedManager, setId: string): void {
+  export function unmapSetTokenFromDelegatedManager(delegatedManager: DelegatedManager, set: SetToken): void {
     // Remove Owner mapping
     const ownerId = delegatedManager.owner;
     if (ownerId) {
       let owner = getOwner(ownerId);
-      unmapSetTokenFromAddress(owner, setId);
+      unmapSetTokenFromAddress(owner, set);
     }
     // Remove Methodologist mapping
     const methodologistId = delegatedManager.methodologist;
     if (methodologistId) {
       let methodologist = getMethodologist(methodologistId);
-      unmapSetTokenFromAddress(methodologist, setId);
+      unmapSetTokenFromAddress(methodologist, set);
     }
     // Remove Operator mapping
     const operators = delegatedManager.operators;
@@ -429,7 +434,7 @@ export namespace delegated_managers {
       for (let i = 0; i < operators.length; i++) {
         const operatorId = operators[i];
         let operator = getOperator(operatorId);
-        unmapSetTokenFromAddress(operator, setId);
+        unmapSetTokenFromAddress(operator, set);
       }
     }
   }

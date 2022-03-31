@@ -178,7 +178,7 @@ async function main() {
   await delegatedManagerOne.connect(ownerTwo.wallet).addOperators([operatorTwo.address]);
 
   // Remove operatorOne
-  // await delegatedManagerOne.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
+  await delegatedManagerOne.connect(ownerTwo.wallet).removeOperators([operatorOne.address]);
 
   // Case 2: DelegatedManagerFactory deployed DelegatedManager with migrating SetToken
   // -----------------------------------------------
