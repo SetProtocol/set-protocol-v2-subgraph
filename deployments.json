@@ -1,52 +1,59 @@
 {
-  "mainnet": {
+  "main-net-production": {
     "network": "mainnet",
     "subgraphName": "set-protocol-v2",
-    "startBlock": 10830495,
-    "SetTokenCreator": "0xef72d3278dc3eba6dc2614965308d1435ffd748a"
+    "startBlock": 10830496,
+    "Controller": "0xa4c8d221d8BB851f83aadd0223a8900A6921A349",
+    "ManagerCore": "0x7a397B3ed39E84C6181e47309CE940574290f4e7"
   },
   "staging-mainnet": {
     "network": "mainnet",
     "subgraphName": "set-protocol-v2-staging",
-    "startBlock": 10819027,
-    "SetTokenCreator": "0x026d25C2B70Ddbb8D759f1f38d6fD6e23b60B6DF"
+    "startBlock": 10819024,
+    "Controller": "0xF1B12A7b1f0AF744ED21eEC7d3E891C48Fd3c329",
+    "ManagerCore": "0x09338207F33BC81B04A520464eBFCD0165dd302E"
   },
-  "matic": {
+  "polygon-mainnet-production": {
     "network": "matic",
     "subgraphName": "set-protocol-v2-matic",
-    "startBlock": 0,
-    "SetTokenCreator": "0x14f0321be5e581abF9d5BC76260bf015Dc04C53d"
+    "startBlock": 16783648,
+    "Controller": "0x75FBBDEAfE23a48c0736B2731b956b7a03aDcfB2",
+    "ManagerCore": "0x0df58926e1c8A236B3b41f07a94Df77C90c6638F"
   },
-  "matic-staging-mainnet": {
+  "polygon-mainnet-staging": {
     "network": "matic",
     "subgraphName": "set-protocol-v2-matic-staging",
-    "startBlock": 16655167,
+    "startBlock": 15214853,
     "Controller": "0x719E5B865dE407bf38647C1625D193E0CE42111D",
     "ManagerCore": "0x6443E67CbCF1C527B040b8b4a90F9e9229d790e4"
   },
-  "arbitrum-staging-mainnet": {
+  "arbitrum-mainnet-staging": {
     "network": "arbitrum-one",
     "subgraphName": "set-protocol-v2-arbitrum-staging",
-    "startBlock": 1168154,
-    "SetTokenCreator": "0xCF786472d37f557A80fE6daFF6f2672bfDa728a3"
+    "startBlock": 1164680,
+    "Controller": "0x719E5B865dE407bf38647C1625D193E0CE42111D",
+    "ManagerCore": ""
   },
-  "avalanche-staging-mainnet": {
+  "avalanche-mainnet-staging": {
     "network": "avalanche",
     "subgraphName": "set-protocol-v2-avax-staging",
-    "startBlock": 6097319,
-    "SetTokenCreator": "0xE99447aBbD5A7730b26D2D16fCcB2086319e4bC3"
+    "startBlock": 6097306,
+    "Controller": "0x14099863F0B6490759f9D8bC5653CF52b7eF38eb",
+    "ManagerCore": ""
   },
-  "optimism-mainnet": {
+  "optimism-mainnet-production": {
     "network": "optimism",
     "subgraphName": "set-protocol-v2-optimism",
-    "startBlock": 900529,
-    "SetTokenCreator": "0x0bc84D31f11D90156c30B4f19509Ede969A0B840"
+    "startBlock": 900528,
+    "Controller": "0x84D5657347cC2beD0A4D6a82c0A6f3bE1a021cc6",
+    "ManagerCore": "0x71ceB3F645dCBD7549CaaF85A224Db987Ae92630"
   },
-  "optimism-staging-mainnet": {
+  "optimism-mainnet-staging": {
     "network": "optimism",
     "subgraphName": "set-protocol-v2-optimism-staging",
-    "startBlock": 593299,
-    "SetTokenCreator": "0xCF786472d37f557A80fE6daFF6f2672bfDa728a3"
+    "startBlock": 593297,
+    "Controller": "0x719E5B865dE407bf38647C1625D193E0CE42111D",
+    "ManagerCore": "0xe3Ebf3788Fab3de919da7332e7b72899414d3E80"
   },
   "hardhat": {
     "network": "hardhat",
