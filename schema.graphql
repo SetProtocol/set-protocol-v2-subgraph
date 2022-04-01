@@ -1,13 +1,19 @@
-type SetTokenCount @entity {
-  id: ID!
-  count: BigInt!
-}
-
 type Controller @entity {
   id: ID!           # Controller ID (= "1")
   address: String!  # Controller contract address
   # derived fields
   setTokens: [SetToken!]! @derivedFrom(field: "controller")
+}
+
+type SetTokenCount @entity {
+  id: ID!
+  count: BigInt!
+}
+
+# Entity to keep track of templated addresses in order to prevent repeat
+# instantiation attempts
+type TemplateTracker @entity {
+  id: ID!
 }
 
 type Manager @entity {

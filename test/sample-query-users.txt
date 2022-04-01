@@ -10,37 +10,36 @@ fragment CoreManagerFields on Manager {
 }
 
 {
-	# Query all Managers
+  # Query all Managers
   managers {
     id
     type
     setTokens { ...CoreSetTokenFields }
   }
-	# Query all Owners
+  # Query all Owners
   owners {
     id
     setTokens { ...CoreSetTokenFields }
   }
-	# Query all Methodologists
+  # Query all Methodologists
   methodologists {
     id
     setTokens { ...CoreSetTokenFields }
   }
-	# Query all Operators
+  # Query all Operators
   operators {
     id
     setTokens { ...CoreSetTokenFields }
   }
 
-	# Query Manager by address
+  # Query Manager by address
   manager(id: $user) {
     id
     type
     setTokens { ...CoreSetTokenFields }
   }
 
- 	# Query Manager by SetToken address
-  #
+  # Query Manager by SetToken address
   setToken(id: $setTokenId) {
   	manager { ...CoreManagerFields }
 	}

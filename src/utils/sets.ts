@@ -2,7 +2,8 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import {
   ActivityLog,
   SetToken,
-  SetTokenCount
+  SetTokenCount,
+  TemplateTracker
 } from "../../generated/schema";
 import {
   SetTokenCreator as SetTokenCreatorTemplate,
@@ -25,7 +26,13 @@ export namespace sets {
    */
   export function createSetTokenCreatorTemplate(event: ControllerSetAddedEvent): void {
     getController(event.address.toHexString());
-    SetTokenCreatorTemplate.create(event.params._factory);
+    // Only trigger if a template hasn't been previously instantiated
+    let template = TemplateTracker.load(event.params._factory.toHexString());
+    if (!template) {
+      template = new TemplateTracker(event.params._factory.toHexString());
+      template.save();
+      SetTokenCreatorTemplate.create(event.params._factory);
+    }
   }
 
   /**
@@ -43,12 +50,18 @@ export namespace sets {
    * @param event
    */
   export function createModuleTemplate(event: ModuleInitializedEvent): void {
-    // NOTE: Ideally, this would only trigger the appropriate template creation
-    //       based on the module being initialised; however, as we cannot
-    //       fingerprint the calling module from within the subgraph, it
-    //       currently triggers for all modules, creating templates never used
-    TradeModuleTemplate.create(event.params._module);
-    StreamingFeeModuleTemplate.create(event.params._module);
+    // Only trigger if a template hasn't been previously instantiated
+    let template = TemplateTracker.load(event.params._module.toHexString());
+    if (!template) {
+      template = new TemplateTracker(event.params._module.toHexString());
+      template.save();
+      // NOTE: Ideally, this would only trigger the appropriate template creation
+      //       based on the module being initialised; however, as we cannot
+      //       fingerprint the calling module from within the subgraph, it
+      //       currently triggers for all modules, creating templates never used
+      TradeModuleTemplate.create(event.params._module);
+      StreamingFeeModuleTemplate.create(event.params._module);
+    }
   }
 
   /**
