@@ -78,9 +78,9 @@ Available tasks for this project:
 
 `schema.graphql` - Subgraph schema
 
-`templates/subgraph.*.yaml` - configure watched contracts and events
+`templates/subgraph.yaml` - configure watched contracts and events
 
-`deployments.json` - configure deployed contract addresses
+`deployments.json` - configure deployed contract addresses on each chain
 
 `src/` - [AssemblyScript](https://www.assemblyscript.org) code for subgraph handlers
 
