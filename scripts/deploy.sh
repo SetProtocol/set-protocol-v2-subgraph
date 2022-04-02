@@ -24,9 +24,6 @@ if [ -z "${SUBGRAPH_NAME}" ]; then
   fi
 fi
 
-# Install node dependencies (note: into named Docker volume, not on bind mount to host)
-npm install --include=dev typescript ts-node handlebars @graphprotocol/graph-cli @graphprotocol/graph-ts
-
 # Wait for graph-node container
 if [ "${DEPLOYMENT}" = "local" ]; then
   bash ./scripts/wait-for-it.sh ${GRAPH_NODE_IP} -t 180 -s
@@ -51,7 +48,7 @@ if [ "${DEPLOYMENT}" = "local" ]; then
   npx graph deploy -l "${SUBGRAPH_VERSION}" "${GITHUB_REPO}/${SUBGRAPH_NAME}" --ipfs "http://${IPFS_IP}" --node "http://${GRAPH_NODE_IP}" ${ACCESS_TOKEN_ARG}
   echo "Deployment complete (press Ctrl+C to stop)"
 else
-  echo "Deploy subgraph ${GITHUB_REPO}/${SUBGRAPH_NAME} to Hosted Service on network '${NETWORK_NAME}'"
+  echo "Deploy subgraph ${GITHUB_REPO}/${SUBGRAPH_NAME} version ${SUBGRAPH_VERSION} to Hosted Service on network '${NETWORK_NAME}'"
   # Authorize and deploy subgraph to Hosted Service
   npx graph auth "${GRAPH_NODE_IP}" "${ACCESS_TOKEN}"
   npx graph deploy -l "${SUBGRAPH_VERSION}" --product hosted-service "${GITHUB_REPO}/${SUBGRAPH_NAME}"

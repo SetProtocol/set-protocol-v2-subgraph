@@ -41,6 +41,7 @@ cache/
 
 # Generated subgraph manifest and addresses
 subgraph.yaml
+!templates/subgraph.yaml
 addresses.ts
 
 # User dotenv
@@ -48,3 +49,5 @@ docker/custom.env
 
 # Non-explicitly-committed tests
 test/
+
+abis/

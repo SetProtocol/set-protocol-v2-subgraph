@@ -36,15 +36,6 @@ let input = path.join(templatesDir, "addresses.ts");
 let output = path.join(generatedDir, "addresses.ts");
 replace(input, output);
 
-// subgraph.yaml - select based on targeted network
-if (deploymentName == "mainnet") {
-  input = path.join(templatesDir, "subgraph.mainnet.yaml");
-} else if (deploymentName == "staging-mainnet") {
-  input = path.join(templatesDir, "subgraph.staging-mainnet.yaml");
-} else if (deploymentName == "matic-staging-mainnet") {
-  input = path.join(templatesDir, "subgraph.matic-staging-mainnet.yaml");
-} else {
-  input = path.join(templatesDir, "subgraph.default.yaml");
-}
+input = path.join(templatesDir, "subgraph.yaml");
 output = path.join(process.cwd(), "subgraph.yaml");
 replace(input, output);

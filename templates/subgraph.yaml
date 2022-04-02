@@ -5,13 +5,80 @@ repository: https://github.com/SetProtocol/set-protocol-v2-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
+  - name: Controller
+    kind: ethereum/contract
+    network: '{{network}}'
+    source:
+      abi: Controller
+      address: '{{Controller}}'
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/Controller.ts
+      entities:
+        - SetTokenCreator
+      abis:
+        - name: Controller
+          file: ./abis/Controller.json
+      eventHandlers:
+        - event: FactoryAdded(indexed address)
+          handler: handleFactoryAdded
+        - event: ModuleAdded(indexed address)
+          handler: handleModuleAdded
+        - event: SetAdded(indexed address,indexed address)
+          handler: handleSetAdded
+  - name: ManagerCore
+    kind: ethereum/contract
+    network: '{{network}}'
+    source:
+      abi: ManagerCore
+      address: '{{ManagerCore}}'
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/ManagerCore.ts
+      entities:
+        - DelegatedManager
+      abis:
+        - name: ManagerCore
+          file: ./abis/ManagerCore.json
+      eventHandlers:
+        - event: FactoryAdded(indexed address)
+          handler: handleFactoryAdded
+        - event: ManagerAdded(indexed address,indexed address)
+          handler: handleManagerAdded
+
+templates:
+  - name: DelegatedManagerFactory
+    kind: ethereum/contract
+    network: '{{network}}'
+    source:
+      abi: DelegatedManagerFactory
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/DelegatedManagerFactory.ts
+      entities:
+        - DelegatedManager
+      abis:
+        - name: DelegatedManagerFactory
+          file: ./abis/DelegatedManagerFactory.json
+      eventHandlers:
+        - event: DelegatedManagerCreated(indexed address,indexed address,address)
+          handler: handleDelegatedManagerCreated
+        - event: DelegatedManagerInitialized(indexed address,indexed address)
+          handler: handleDelegatedManagerInitialized
+
   - name: SetTokenCreator
     kind: ethereum/contract
     network: '{{network}}'
     source:
       abi: SetTokenCreator
-      address: '{{SetTokenCreator}}'
-      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -27,33 +94,6 @@ dataSources:
       eventHandlers:
         - event: SetTokenCreated(indexed address,address,string,string)
           handler: handleSetTokenCreated
-
-  # [NOTE] The following set of dataSources reference deprecated SetTokenCreator
-  # contracts on Polygon mainnet tied to deployed SetTokens.
-
-  - name: SetTokenCreator-deprecated-matic-staging-mainnet
-    kind: ethereum/contract
-    network: '{{network}}'
-    source:
-      abi: SetTokenCreator
-      address: '0xCF786472d37f557A80fE6daFF6f2672bfDa728a3'
-      startBlock: 15214871
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/mappings/SetTokenCreator.ts
-      entities:
-        - Manager
-        - SetToken
-      abis:
-        - name: SetTokenCreator
-          file: ./abis/SetTokenCreator.json
-      eventHandlers:
-        - event: SetTokenCreated(indexed address,address,string,string)
-          handler: handleSetTokenCreated
-
-templates:
   - name: SetToken
     kind: ethereum/contract
     network: '{{network}}'
@@ -74,6 +114,36 @@ templates:
           handler: handleModuleInitialized
         - event: ManagerEdited(address,address)
           handler: handleManagerEdited
+  - name: DelegatedManager
+    kind: ethereum/contract
+    network: '{{network}}'
+    source:
+      abi: DelegatedManager
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/DelegatedManager.ts
+      entities:
+        - DelegatedManager
+        - Owner
+        - Methodologist
+        - Operator
+        - OwnerUpdate
+        - MethodologistUpdate
+        - OperatorUpdate
+      abis:
+        - name: DelegatedManager
+          file: ./abis/DelegatedManager.json
+      eventHandlers:
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: MethodologistChanged(indexed address)
+          handler: handleMethodologistChanged
+        - event: OperatorAdded(indexed address)
+          handler: handleOperatorAdded
+        - event: OperatorRemoved(indexed address)
+          handler: handleOperatorRemoved
   - name: TradeModule
     kind: ethereum/contract
     network: '{{network}}'

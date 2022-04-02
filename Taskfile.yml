@@ -8,7 +8,7 @@ dotenv: [
 tasks:
 
   clean:
-    desc: "Clean up deployments. Options: 'subgraph' (default), 'hardhat', or 'all'."
+    desc: "Clean up deployments. Options: 'subgraph' (default), 'graphnode', 'hardhat', or 'all'."
     dir: docker/
     cmds:
       - docker-compose -f {{.TARGET}} down --volumes {{.ARGS}}
@@ -17,6 +17,8 @@ tasks:
       TARGET:
         sh: if [ "{{.CLI_ARGS}}" = "hardhat" ]; then
               echo "docker-compose.hardhat.yml";
+            elif [ "{{.CLI_ARGS}}" = "graphnode" ]; then
+              echo "docker-compose.graphnode.yml";
             else
               echo "docker-compose.local.yml";
             fi
@@ -37,33 +39,45 @@ tasks:
         sh: basename "{{.CLI_ARGS}}"
     env:
       DEPLOY_SCRIPT: "{{.DEPLOY_SCRIPT}}"
+    preconditions:
+      - sh: if [ -z "{{.CLI_ARGS}}" ]; then
+              echo "No test deployment script provided.";
+              exit 1;
+            fi
 
   deploy-hosted:
-    # TO-DO: untested
     desc: "Build and deploy subgraph on Hosted Service."
     dir: docker/
     cmds:
       - docker-compose -f docker-compose.hosted.yml up
     vars:
       NETWORK_NAME:
-        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -f1) ]; then echo "{{.CLI_ARGS}}" | cut -d" " -f1; else echo "{{.NETWORK_HOSTED}}"; fi
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -f1) ]; then
+              echo "{{.CLI_ARGS}}" | cut -d" " -f1;
+            else
+              echo "{{.NETWORK_HOSTED}}";
+            fi
       SUBGRAPH_ACCESS_TOKEN:
-        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then echo "{{.CLI_ARGS}}" | cut -d" " -s -f2; else echo "{{.SUBGRAPH_ACCESS_TOKEN}}"; fi
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then
+              echo "{{.CLI_ARGS}}" | cut -d" " -s -f2;
+            else
+              echo "{{.SUBGRAPH_ACCESS_TOKEN}}";
+            fi
     env:
       ACCESS_TOKEN: "{{.SUBGRAPH_ACCESS_TOKEN}}"
       DEPLOYMENT: "hosted"
       NETWORK_NAME: "{{.NETWORK_NAME}}"
     preconditions:
-      - sh: if [ -z "$(ls -A ../abis)" ]; then exit -1; fi
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
   deploy-local:
-    desc: "Build and deploy subgraph on local network."
+    desc: "Build graph-node and ipfs services then deploy subgraph on local network."
     dir: docker/
     cmds:
-      - docker-compose -f docker-compose.local.yml up {{.ARGS}}
+      - docker-compose -f docker-compose.graphnode.yml -f docker-compose.local.yml up {{.DETACH}}
     vars:
-      ARGS:
+      DETACH:
         sh: if [ "{{.CLI_ARGS}}" = "detach" ]; then echo "-d"; else echo ""; fi
     env:
       DEPLOYMENT: "local"
@@ -72,7 +86,52 @@ tasks:
       GRAPH_NODE_IP: "{{.GRAPH_NODE_CONTAINER}}:{{.GRAPH_NODE_PORT}}"
       NETWORK_NAME: "{{.NETWORK_LOCAL}}"
     preconditions:
-      - sh: if [ -z "$(ls -A ../abis)" ]; then exit -1; fi
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
+        msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
+
+  deploy-local-graphnode:
+    desc: "Build and deploy graph-node and ipfs services on local network."
+    dir: docker/
+    cmds:
+      - docker-compose -f docker-compose.graphnode.yml up {{.DETACH}}
+    vars:
+      DETACH:
+        sh: if [ "{{.CLI_ARGS}}" = "detach" ]; then echo "-d"; else echo ""; fi
+    env:
+      DEPLOYMENT: "local"
+      ACCESS_TOKEN: "{{.LOCAL_ACCESS_TOKEN}}"
+      IPFS_IP: "{{.IPFS_CONTAINER}}:{{.IPFS_PORT}}"
+      GRAPH_NODE_IP: "{{.GRAPH_NODE_CONTAINER}}:{{.GRAPH_NODE_PORT}}"
+      NETWORK_NAME: "{{.NETWORK_LOCAL}}"
+    preconditions:
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
+        msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
+
+  deploy-local-subgraph:
+    desc: "Deploy subgraph on running local graph-node and ipfs network."
+    dir: docker/
+    cmds:
+      - if [ "{{.REFRESH}}" = "true" ]; then echo "Deleting IPFS database and re-building..."; else echo "Skipping IPFS refresh..."; fi
+      - if [ "{{.REFRESH}}" = "true" ]; then docker-compose -f docker-compose.graphnode.yml exec ipfs rm -rf /data/ipfs/*; fi
+      - if [ "{{.REFRESH}}" = "true" ]; then docker-compose -f docker-compose.graphnode.yml restart ipfs; fi
+      - if [ "{{.REFRESH}}" = "true" ]; then docker-compose -f docker-compose.graphnode.yml restart graph-node; fi
+      - docker-compose -f docker-compose.local.yml run setprotocol-subgraph
+      - docker-compose -f docker-compose.local.yml rm -f setprotocol-subgraph
+    vars:
+      REFRESH:
+        sh: if [ "{{.CLI_ARGS}}" = "refresh" ]; then echo "true"; else echo "false"; fi
+    env:
+      DEPLOYMENT: "local"
+      ACCESS_TOKEN: "{{.LOCAL_ACCESS_TOKEN}}"
+      IPFS_IP: "{{.IPFS_CONTAINER}}:{{.IPFS_PORT}}"
+      GRAPH_NODE_IP: "{{.GRAPH_NODE_CONTAINER}}:{{.GRAPH_NODE_PORT}}"
+      NETWORK_NAME: "{{.NETWORK_LOCAL}}"
+    preconditions:
+      - sh: if [ $( docker container inspect -f '{{.State.Status}}' {{.GRAPH_NODE_CONTAINER}} ) != "running" ]; then exit 1; fi
+        msg: "ERROR: Docker container '{{.GRAPH_NODE_CONTAINER}}' is not running."
+      - sh: if [ $( docker container inspect -f '{{.State.Status}}' {{.IPFS_CONTAINER}} ) != "running" ]; then exit 1; fi
+        msg: "ERROR: Docker container '{{.IPFS_CONTAINER}}' is not running."
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
   docker-build:
@@ -96,9 +155,13 @@ tasks:
     desc: "Generate schema intermediate artifacts for development without a full deploy."
     cmds:
       - rm -rf generated/ build/
-      - docker run --rm -e NETWORK_NAME={{.NETWORK_NAME}} -v $(pwd)/:/subgraph -v setprotocol-subgraph-node_modules:/subgraph/node_modules -w /subgraph {{.SET_IMAGE_NAME}}:node-{{.NODE_VER}} sh scripts/gen-schema.sh
+      - docker-compose -f docker/docker-compose.schema.yml run gen-schema
+      - docker-compose -f docker/docker-compose.schema.yml rm -f gen-schema
     vars:
       NETWORK_NAME:
         sh: if [ "{{.CLI_ARGS}}" = "hosted" ]; then echo "{{.NETWORK_HOSTED}}"; else echo "{{.NETWORK_LOCAL}}"; fi
     env:
       NETWORK_NAME: "{{.NETWORK_NAME}}"
+    preconditions:
+      - sh: if [ -z "$(ls -A ./abis)" ]; then exit 1; fi
+        msg: "ERROR: No ABIs found. Run 'task gen-abi' first."

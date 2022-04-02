@@ -1,49 +1,68 @@
 {
-  protocols {
+  setTokenCount(id: "1") {
+    count
+  }
+  controller(id: "1") {
     id
-    setTokenCount
-    managerCount
+    address
     setTokens {
       id
+      name
+      inception
+      symbol
       manager {
         id
-        protocol {
+        type
+      }
+      activityLog {
+        feeRecipientUpdates(orderBy: timestamp) {
           id
+          timestamp
+          address
         }
-      }
-      name
-      symbol
-      managerUpdates {
-        id
-        timestamp
-        oldManager
-        newManager
-      }
-      feeRecipientUpdates {
-        id
-        timestamp
-        address
-      }
-      streamingFeeAccrues {
-        id
-        timestamp
-        managerFee
-        protocolFee
-      }
-      streamingFeeUpdates {
-        id
-        timestamp
-        fee
-      }
-      rebalanceTrades {
-        id
-        timestamp
-        exchange
-        sendToken
-        receiveToken
-        totalSendAmount
-        totalReceiveAmount
-        fee
+        streamingFeeAccrues(orderBy: timestamp) {
+          id
+          timestamp
+          managerFee
+          protocolFee
+        }
+        streamingFeeUpdates(orderBy: timestamp) {
+          id
+          timestamp
+          fee
+        }
+        rebalanceTrades(orderBy: timestamp) {
+          id
+          timestamp
+          exchange
+          sendToken
+          receiveToken
+          totalSendAmount
+          totalReceiveAmount
+          fee
+        }
+        managerUpdates(orderBy: timestamp) {
+          id
+          timestamp
+          oldManager
+          newManager
+        }
+        ownerUpdates(orderBy: timestamp) {
+          id
+          timestamp
+          address
+        }
+        methodologistUpdates(orderBy: timestamp) {
+          id
+          timestamp
+          address
+        }
+        operatorUpdates(orderBy: timestamp) {
+          id
+          timestamp
+          action
+          address
+        }
       }
     }
   }
