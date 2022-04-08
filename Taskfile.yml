@@ -30,20 +30,27 @@ tasks:
             fi
 
   deploy-hardhat:
-    desc: "Deploy a local Hardhat node and test script. Must specify full path to file as task input argument."
+    desc: "Deploy a local Hardhat node and (optionally) a state deployment test script."
     dir: docker/
     cmds:
-      - docker-compose -f docker-compose.hardhat.yml run --name {{.HARDHAT_IP}} --rm -v {{.CLI_ARGS}}:/tmp/{{.DEPLOY_SCRIPT}} hardhat-build bash /app/scripts/deploy-hardhat.sh
+      - docker-compose -f docker-compose.hardhat.yml run --name {{.HARDHAT_IP}} --rm hardhat-build bash /app/scripts/deploy-hardhat.sh
     vars:
-      DEPLOY_SCRIPT:
-        sh: basename "{{.CLI_ARGS}}"
-    env:
-      DEPLOY_SCRIPT: "{{.DEPLOY_SCRIPT}}"
-    preconditions:
-      - sh: if [ -z "{{.CLI_ARGS}}" ]; then
-              echo "No test deployment script provided.";
-              exit 1;
+      REPO_URL:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -f1) ]; then
+              echo "{{.CLI_ARGS}}" | cut -d" " -f1;
+            else
+              echo "{{.HARDHAT_STATE_TARGET_REPO}}";
             fi
+      TEST_SCRIPT:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then
+              echo "{{.CLI_ARGS}}" | cut -d" " -s -f2;
+            else
+              echo "{{.HARDHAT_STATE_TEST_SCRIPT}}";
+            fi
+    env:
+      REPO_URL: "{{.REPO_URL}}"
+      REPO_BRANCH_OR_TAG: "{{.HARDHAT_REPO_BRANCH_OR_TAG}}"
+      TEST_SCRIPT: "{{.TEST_SCRIPT}}"
 
   deploy-hosted:
     desc: "Build and deploy subgraph on Hosted Service."
@@ -135,10 +142,9 @@ tasks:
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
   docker-build:
-    desc: "Build Docker images based on defined node version base (default: 16-slim)."
+    desc: "Build Docker image based on defined node version base (default: 16-slim)."
     cmds:
       - docker build -t {{.SET_IMAGE_NAME}}:node-{{.NODE_VER}} -f docker/Dockerfile.base --build-arg NODE_VER={{.NODE_VER}} .
-      - docker build -t {{.HARDHAT_IMAGE_NAME}}:node-{{.NODE_VER}} -f docker/Dockerfile.hardhat --build-arg SET_IMAGE_NAME={{.SET_IMAGE_NAME}} --build-arg NODE_VER={{.NODE_VER}} .
 
   gen-abi:
     desc: "Pull latest Set Protocol ABIs into the build environment."

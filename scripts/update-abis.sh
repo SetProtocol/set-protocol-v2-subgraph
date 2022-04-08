@@ -33,9 +33,7 @@ PROTOCOL_CONTRACTS=(
 
 # Clone and compile the Set Protocol V2 contracts repo
 cd /tmp
-ls -al
 git clone -q --depth=1 --branch "${PROTOCOL_REPO_BRANCH_OR_TAG}" "${PROTOCOL_REPO_URL}"
-ls -al
 cd $(echo "${PROTOCOL_REPO_URL}" | rev | cut -d"/" -f1 | rev)
 cp .env.default .env
 yarn && yarn compile
