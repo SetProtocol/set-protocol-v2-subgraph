@@ -64,6 +64,8 @@ Per the [documentation](https://thegraph.com/docs/en/hosted-service/deploy-subgr
 
    Note: `NETWORK_EXTERNAL` and `SUBGRAPH_DEPLOY_KEY` must be provided as input arguments or defined in the dotenv configuration (as per arguments for Hosted Service deployments; see above).
 
+1. Complete steps to test and publish following the documentation: https://thegraph.com/docs/en/studio/subgraph-studio/
+
 ## USAGE
 
 Available tasks for this project:
