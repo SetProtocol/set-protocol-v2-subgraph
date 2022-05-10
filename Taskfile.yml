@@ -6,6 +6,9 @@ dotenv: [
 ]
 
 tasks:
+  default:
+    cmds:
+      - task --list
 
   clean:
     desc: "Clean up deployments. Options: 'subgraph' (default), 'graphnode', 'hardhat', or 'all'."
@@ -62,7 +65,7 @@ tasks:
         sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -f1) ]; then
               echo "{{.CLI_ARGS}}" | cut -d" " -f1;
             else
-              echo "{{.NETWORK_HOSTED}}";
+              echo "{{.NETWORK_EXTERNAL}}";
             fi
       SUBGRAPH_ACCESS_TOKEN:
         sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then
@@ -141,6 +144,32 @@ tasks:
       - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
         msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
 
+  deploy-studio:
+    desc: "Build and deploy subgraph on Studio Subgraph."
+    dir: docker/
+    cmds:
+      - docker-compose -f docker-compose.studio.yml up
+    vars:
+      NETWORK_NAME:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -f1) ]; then
+              echo "{{.CLI_ARGS}}" | cut -d" " -f1;
+            else
+              echo "{{.NETWORK_EXTERNAL}}";
+            fi
+      SUBGRAPH_DEPLOY_KEY:
+        sh: if [ $(echo "{{.CLI_ARGS}}" | cut -d" " -s -f2) ]; then
+              echo "{{.CLI_ARGS}}" | cut -d" " -s -f2;
+            else
+              echo "{{.SUBGRAPH_DEPLOY_KEY}}";
+            fi
+    env:
+      DEPLOY_KEY: "{{.SUBGRAPH_DEPLOY_KEY}}"
+      DEPLOYMENT: "studio"
+      NETWORK_NAME: "{{.NETWORK_NAME}}"
+    preconditions:
+      - sh: if [ -z "$(ls -A ../abis)" ]; then exit 1; fi
+        msg: "ERROR: No ABIs found. Run 'task gen-abi' first."
+
   docker-build:
     desc: "Build Docker image based on defined node version base (default: 16-slim)."
     cmds:
@@ -165,7 +194,7 @@ tasks:
       - docker-compose -f docker/docker-compose.schema.yml rm -f gen-schema
     vars:
       NETWORK_NAME:
-        sh: if [ "{{.CLI_ARGS}}" = "hosted" ]; then echo "{{.NETWORK_HOSTED}}"; else echo "{{.NETWORK_LOCAL}}"; fi
+        sh: if [ "{{.CLI_ARGS}}" = "hosted" ]; then echo "{{.NETWORK_EXTERNAL}}"; else echo "{{.NETWORK_LOCAL}}"; fi
     env:
       NETWORK_NAME: "{{.NETWORK_NAME}}"
     preconditions:

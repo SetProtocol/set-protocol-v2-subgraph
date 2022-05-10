@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+  setprotocol-subgraph:
+    image: ${SET_IMAGE_NAME}:node-${NODE_VER}
+    environment:
+      DEPLOYMENT: ${DEPLOYMENT:-studio}
+      DEPLOY_KEY: ${DEPLOY_KEY}
+      SUBGRAPH_VERSION: ${SUBGRAPH_VERSION:-""}
+      NETWORK_NAME: ${NETWORK_NAME}
+      SUBGRAPH_NAME: ${SUBGRAPH_NAME}
+    volumes:
+      - ../:/subgraph
+      - setprotocol-subgraph-node_modules:/subgraph/node_modules
+    working_dir: /subgraph
+    command: "sh ./scripts/deploy.sh"
+
+volumes:
+  setprotocol-subgraph-node_modules:
+    external: false
