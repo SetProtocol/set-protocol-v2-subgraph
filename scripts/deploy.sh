@@ -2,14 +2,20 @@
 
 set -e
 
-# External deployment requires ACCESS_TOKEN
+# Hosted Service deployment requires ACCESS_TOKEN
 if [ "${DEPLOYMENT}" = "hosted" ] && [ ! -n "${ACCESS_TOKEN}" ]; then
   echo "ERROR: Subgraph access token required for hosted deployments."
   exit 1
 fi
 
+# Subgraph Studio deployment requires DEPLOY_KEY
+if [ "${DEPLOYMENT}" = "studio" ] && [ ! -n "${DEPLOY_KEY}" ]; then
+  echo "ERROR: Deploy key required for studio deployments."
+  exit 1
+fi
+
 # Make sure network name is set for external deployments
-if [ "${DEPLOYMENT}" = "hosted" ] && [ ! -n "${NETWORK_NAME}" ]; then
+if [ "${DEPLOYMENT}" = "hosted" ] || [ "${DEPLOYMENT}" = "studio" ] && [ ! -n "${NETWORK_NAME}" ]; then
     echo "ERROR: No target network specified for hosted deployment."
     exit 1
 fi
@@ -47,6 +53,12 @@ if [ "${DEPLOYMENT}" = "local" ]; then
   echo "Deploy local subgraph ${GITHUB_REPO}/${SUBGRAPH_NAME}"
   npx graph deploy -l "${SUBGRAPH_VERSION}" "${GITHUB_REPO}/${SUBGRAPH_NAME}" --ipfs "http://${IPFS_IP}" --node "http://${GRAPH_NODE_IP}" ${ACCESS_TOKEN_ARG}
   echo "Deployment complete (press Ctrl+C to stop)"
+elif [ "${DEPLOYMENT}" = "studio" ]; then
+  echo "Deploy subgraph ${SUBGRAPH_NAME} version ${SUBGRAPH_VERSION} to Subgraph Studio on network '${NETWORK_NAME}'"
+  # Authorize and deploy subgraph to Hosted Service
+  npx graph auth --studio "${DEPLOY_KEY}"
+  npx graph deploy -l "${SUBGRAPH_VERSION}" --product subgraph-studio "${SUBGRAPH_NAME}"
+  echo "Deployment complete"
 else
   echo "Deploy subgraph ${GITHUB_REPO}/${SUBGRAPH_NAME} version ${SUBGRAPH_VERSION} to Hosted Service on network '${NETWORK_NAME}'"
   # Authorize and deploy subgraph to Hosted Service

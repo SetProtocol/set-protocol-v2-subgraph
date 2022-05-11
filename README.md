@@ -10,7 +10,7 @@ Indexer of Set Protocol v2 events. Built on [The Graph](https://thegraph.com/).
 
 ### Local Deployment (Hardhat)
 
-1. Build the Set Protocol Docker base image
+1. Build the Set Protocol Docker subgraph image
 
    `task docker-build`
 
@@ -36,15 +36,15 @@ Indexer of Set Protocol v2 events. Built on [The Graph](https://thegraph.com/).
 
 ### External Deployment to Hosted Service
 
-1. Build the Set Protocol Docker base image
+1. Build the Set Protocol Docker subgraph image
 
    `task docker-build`
 
-1. Deploy hosted subgraph to network specified by the `NETWORK_HOSTED` argument
+1. Deploy hosted subgraph to network specified by the `NETWORK_EXTERNAL` argument
 
-   `task deploy-hosted [-- NETWORK_HOSTED SUBGRAPH_ACCESS_TOKEN]`
+   `task deploy-hosted [-- NETWORK_EXTERNAL SUBGRAPH_ACCESS_TOKEN]`
 
-   Note: `NETWORK_HOSTED` and `SUBGRAPH_ACCESS_TOKEN` must be provided as input arguments or defined in the dotenv configuration. Input arguments take precendence over dotenv configurations. For input arguments, you can specify just the network, or both the network and the access token, but you cannot provide the access token alone.
+   Note: `NETWORK_EXTERNAL` and `SUBGRAPH_ACCESS_TOKEN` must be provided as input arguments or defined in the dotenv configuration. Input arguments take precendence over dotenv configurations. For input arguments, you can specify just the network, or both the network and the access token, but you cannot provide the access token alone.
 
 **IMPORTANT NOTE**
 
@@ -52,9 +52,19 @@ Per the [documentation](https://thegraph.com/docs/en/hosted-service/deploy-subgr
 
 > A subgraph is defined as "inactive" if it was deployed to the Hosted Service more than 45 days ago, and if it has received 0 queries in the last 30 days.
 
-### [TO-DO] External Deployment to Subgraph Studio
+### External Deployment to Subgraph Studio
 
-TBD
+1. Build the Set Protocol Docker subgraph image
+
+   `task docker-build`
+
+1. Deploy subgraph to slug identified by the `NETWORK_EXTERNAL` argument
+
+   `task deploy-studio [-- NETWORK_EXTERNAL SUBGRAPH_DEPLOY_KEY]`
+
+   Note: `NETWORK_EXTERNAL` and `SUBGRAPH_DEPLOY_KEY` must be provided as input arguments or defined in the dotenv configuration (as per arguments for Hosted Service deployments; see above).
+
+1. Complete steps to test and publish following the documentation: https://thegraph.com/docs/en/studio/subgraph-studio/
 
 ## USAGE
 
@@ -64,10 +74,11 @@ Available tasks for this project:
 |--------------------------------------|---------------------------------------------------------------------------------|
 | `clean [-- all\|subgraph\|hardhat]`  | Clean up local subgraph deployment; `all` arg additionally removes all volumes and the Hardhat node. |
 | `deploy-hardhat [-- HARDHAT_STATE_TARGET_REPO HARDHAT_STATE_TEST_SCRIPT]` | Deploy a local Hardhat node from REPO_URL and run a node state deployment test script. `HARDHAT_STATE_TARGET_REPO` and `HARDHAT_STATE_TEST_SCRIPT` must be provided or defined in a private dotenv. |
-| `deploy-hosted [-- NETWORK_HOSTED SUBGRAPH_ACCESS_TOKEN]` | Build and deploy subgraph to `NETWORK_HOSTED` on Hosted Service. `NETWORK_HOSTED` and `SUBGRAPH_ACCESS_TOKEN` must be provided or defined in a private dotenv. |
+| `deploy-hosted [-- NETWORK_EXTERNAL SUBGRAPH_ACCESS_TOKEN]` | Build and deploy subgraph to `NETWORK_EXTERNAL` on Hosted Service. `NETWORK_EXTERNAL` and `SUBGRAPH_ACCESS_TOKEN` must be provided or defined in a private dotenv. |
 | `deploy-local [-- detach]`           | Build and deploy graph-node and ipfs services on local network followed by deployment of the subgraph; `detach` runs containers in detached mode. |
 | `deploy-local-graphnode [-- detach]` | Build and deploy graph-node and ipfs services on local network; `detach` runs containers in detached mode. |
 | `deploy-local-subgraph [-- refresh]` | Compile and deploy the subgraph onto running graph-node and ipfs services on local network. `refresh` first deletes all IPFS data and restarts the service. |
+| `deploy-studio [-- NETWORK_EXTERNAL SUBGRAPH_DEPLOY_KEY]` | Build and deploy subgraph to `NETWORK_EXTERNAL` on Subgraph Studio. `NETWORK_EXTERNAL` and `SUBGRAPH_DEPLOY_KEY` must be provided or defined in a private dotenv. |
 | `docker-build`                       | Build Set Protocol base Docker image on defined node version (default: 16-slim). |
 | `gen-abi`                            | Pull latest Set Protocol ABIs into the build environment. |
 | `gen-schema [-- hosted]`             | Compile the subgraph schema but do not deploy the subgraph; default target subgraph network is local unless `hosted` argument is provided. |
