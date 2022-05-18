@@ -34,6 +34,13 @@
     "Controller": "0x719E5B865dE407bf38647C1625D193E0CE42111D",
     "ManagerCore": ""
   },
+  "avalanche-mainnet-production": {
+    "network": "avalanche",
+    "subgraphName": "set-protocol-v2-avalanche",
+    "startBlock": 14824033,
+    "Controller": "0xC59E05a299b2FBD418DA8E67CB51DA05c67bDB79",
+    "ManagerCore": "0x659641F71525b02bFe7203F3e5113c48E6736540"
+  },
   "avalanche-mainnet-staging": {
     "network": "avalanche",
     "subgraphName": "set-protocol-v2-avax-staging",
