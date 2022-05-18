@@ -39,7 +39,7 @@
     "subgraphName": "set-protocol-v2-avax-staging",
     "startBlock": 6097306,
     "Controller": "0x14099863F0B6490759f9D8bC5653CF52b7eF38eb",
-    "ManagerCore": ""
+    "ManagerCore": "0x94b8C3B9F32E9E4617536D8888B6026708BD9C75"
   },
   "optimism-mainnet-production": {
     "network": "optimism",
